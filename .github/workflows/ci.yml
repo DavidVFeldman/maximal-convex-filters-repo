@@ -36,13 +36,22 @@ jobs:
       - name: Audit axioms
         run: |
           set -o pipefail
-          if ! grep -q 'depends on axioms' build.log; then
-            echo "No axiom lines found in the build transcript; AxiomCheck did not run."
+          expected=$(grep -c '^#print axioms' AxiomCheck.lean)
+          echo "AxiomCheck.lean requests $expected axiom reports."
+          # Lean wraps long axiom lists across lines, so flatten the transcript
+          # before extracting records.
+          tr '\n' ' ' < build.log > flat.log
+          grep -o 'depends on axioms: \[[^]]*\]' flat.log > records.txt || true
+          found=$(wc -l < records.txt)
+          echo "Found $found axiom reports in the build transcript."
+          if [ "$found" -ne "$expected" ]; then
+            echo "Expected $expected axiom reports, found $found."
+            echo "Either AxiomCheck did not run, or a declaration named there was not reported."
             exit 1
           fi
-          bad=$(sed -n 's/.*depends on axioms: \[\(.*\)\]/\1/p' build.log \
+          bad=$(sed 's/depends on axioms: \[//; s/\]//' records.txt \
                 | tr ',' '\n' \
-                | tr -d '[:space:]' \
+                | sed 's/[[:space:]]//g' \
                 | grep -v '^$' \
                 | grep -vE '^(propext|Classical\.choice|Quot\.sound)$' \
                 | sort -u || true)
@@ -51,4 +60,4 @@ jobs:
             echo "$bad"
             exit 1
           fi
-          echo "Axiom audit passed: only propext, Classical.choice, Quot.sound."
+          echo "Axiom audit passed: $found declarations, only propext, Classical.choice, Quot.sound."
