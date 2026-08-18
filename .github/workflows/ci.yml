@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build and audit axioms
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Install elan
+        run: |
+          curl -sSfL https://github.com/leanprover/elan/releases/latest/download/elan-x86_64-unknown-linux-gnu.tar.gz -o elan.tar.gz
+          tar xzf elan.tar.gz
+          ./elan-init -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Report versions
+        run: |
+          elan --version
+          lake --version
+          lean --version
+
+      - name: Fetch the Mathlib build cache
+        run: lake exe cache get
+
+      - name: Build
+        run: lake build 2>&1 | tee build.log
+
+      - name: Audit axioms
+        run: |
+          set -o pipefail
+          if ! grep -q 'depends on axioms' build.log; then
+            echo "No axiom lines found in the build transcript; AxiomCheck did not run."
+            exit 1
+          fi
+          bad=$(sed -n 's/.*depends on axioms: \[\(.*\)\]/\1/p' build.log \
+                | tr ',' '\n' \
+                | tr -d '[:space:]' \
+                | grep -v '^$' \
+                | grep -vE '^(propext|Classical\.choice|Quot\.sound)$' \
+                | sort -u || true)
+          if [ -n "$bad" ]; then
+            echo "Non-standard axioms found:"
+            echo "$bad"
+            exit 1
+          fi
+          echo "Axiom audit passed: only propext, Classical.choice, Quot.sound."

@@ -1,0 +1,558 @@
+\documentclass[11pt]{amsart}
+\usepackage{amsmath,amssymb,amsthm,mathrsfs}
+\usepackage[margin=1.1in]{geometry}
+\usepackage{hyperref}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{question}[theorem]{Question}
+
+\DeclareMathOperator{\dir}{dir}
+\newcommand{\CC}{\mathscr{C}}
+\newcommand{\RR}{\mathbb{R}}
+\newcommand{\Vs}{V^{*}}
+
+\begin{document}
+
+\title[Maximal filters of closed convex sets]{Maximal filters in the lattice of closed convex sets}
+
+\author{David Victor Feldman}
+\address{Department of Mathematics and Statistics, University of New Hampshire, Durham, NH 03824, USA}
+\email{dvfinnh@gmail.com}
+
+\subjclass[2020]{Primary 52A20; Secondary 06B10, 06F20, 68V20}
+
+\keywords{closed convex set, lattice of convex sets, maximal filter, support function, vector space order, lexicographic cone, complete flag, Lean 4, formalization}
+
+\date{August 2026}
+
+\begin{abstract}
+The closed convex subsets of $\RR^n$ form a complete lattice under inclusion. We classify its maximal filters. Each is determined by an affine subspace $A$, a linear subspace $W$ containing the direction space of $A$, and a vector space order on $W$ in which the direction space of $A$ is order-convex; the only constraint is that $W=0$ when $A$ is a point, in which case the filter is principal. In particular the classifying space is a finite disjoint union of bundles over flag manifolds: no continuous modulus records the rate at which a filter approaches the flat it hugs. The results of Sections 2 through 6 and 9, and all but one of the remarks, are formalized in Lean 4; as is the topology of Section \ref{sec:space}. See Appendix \ref{app:formal}.
+\end{abstract}
+
+\maketitle
+
+\section{Statement}
+
+Let $V=\RR^n$ with dual $\Vs$, and let $\CC(V)$ denote the set of closed convex subsets of $V$, partially ordered by inclusion. Meets are intersections, joins are closed convex hulls of unions, $\emptyset$ is the bottom element and $V$ the top. A \emph{filter} is a nonempty subset $F\subseteq\CC(V)$ that is upward closed, closed under binary intersection, and does not contain $\emptyset$. Filters are ordered by inclusion; \emph{maximal} means maximal among filters. Zorn's lemma applies, since the union of a chain of filters is a filter.
+
+For an affine subspace $A\subseteq V$ write $\dir A\subseteq V$ for its direction space.
+
+\begin{definition}\label{def:vso}
+A \emph{vector space order} on a finite dimensional real vector space $U$ is a total order $\prec$ on $U$ such that $v\prec w$ implies $v+z\prec w+z$ for all $z\in U$ and $\lambda v\prec\lambda w$ for all $\lambda>0$. A subspace $U'\subseteq U$ is \emph{order-convex} if $0\prec w\prec v$ and $v\in U'$ imply $w\in U'$.
+\end{definition}
+
+\begin{theorem}\label{thm:main}
+There is a bijection between the maximal filters of $\CC(\RR^n)$ and the triples $(A,W,\prec)$ in which
+\begin{enumerate}
+\item $A\subseteq V$ is a nonempty affine subspace,
+\item $W\subseteq V$ is a linear subspace with $\dir A\subseteq W$,
+\item $\prec$ is a vector space order on $W$ in which $\dir A$ is order-convex,
+\end{enumerate}
+subject to the single constraint that $W=0$ whenever $\dim A=0$. The filters with $\dim A=0$ are exactly the principal ones.
+\end{theorem}
+
+Under the bijection, $S:=A+W$ is the least affine subspace belonging to the filter, $A$ is the least affine subspace all of whose neighborhoods in $S$ belong to it, the restriction of $\prec$ to $\dir A$ records the escape to infinity along $A$, and the order induced on $W/\dir A$ records the side from which $S$ approaches $A$. Sections \ref{sec:prelim}--\ref{sec:realize} prove the theorem in the equivalent dual form of Theorem \ref{thm:dual}; Section \ref{sec:primal} derives the form above. Section \ref{sec:low} lists the strata for $n\le 3$.
+
+Two features of the statement deserve emphasis. First, the constraint in the last clause is not a normalization but a theorem (Proposition \ref{prop:point}): a filter of germs at a point is contained in the principal filter there and omits the point itself, so it is never maximal. In dimension one this is why there are exactly two non-principal maximal filters rather than a family attached to each point. Second, the data are discrete apart from the choice of $A$, $W$ and the flag: two filters that hug the same flat from the same side at different rates coincide. The mechanism is Lemma \ref{lem:sep} together with the argument of Theorem \ref{thm:unique}: two distinct maximal filters must be separated by a hyperplane, and hyperplanes are linear.
+
+\section{Filters in \texorpdfstring{$\CC(V)$}{C(V)}}\label{sec:prelim}
+
+\begin{lemma}\label{lem:crit}
+A filter $F$ is maximal if and only if for every $C\in\CC(V)\setminus F$ there is $D\in F$ with $C\cap D=\emptyset$.
+\end{lemma}
+
+\begin{proof}
+Given $C\notin F$, the collection $F^{+}=\{X\in\CC(V):X\supseteq C\cap D\text{ for some }D\in F\}$ is upward closed and closed under binary intersection, and contains $F\cup\{C\}$ properly. It is a filter precisely when $C\cap D\neq\emptyset$ for all $D\in F$. So $F$ is maximal if and only if no such $C$ admits this, which is the stated condition. Conversely the condition forbids any proper extension, since a filter containing both $C$ and $D$ would contain $\emptyset$.
+\end{proof}
+
+\begin{lemma}\label{lem:sep}
+Let $C,D\subseteq V$ be nonempty disjoint convex sets. Then there are $u\in\Vs\setminus\{0\}$ and $t\in\RR$ with $u\le t$ on $C$ and $u\ge t$ on $D$.
+\end{lemma}
+
+\begin{proof}
+The set $C-D$ is convex and omits $0$. A point omitted by a convex subset of $V$ is weakly separated from it: if $0\notin\overline{C-D}$ apply strict separation, and otherwise $0$ lies on the boundary of $C-D$ and a supporting functional exists. Thus $u(c)\le u(d)$ for all $c\in C$, $d\in D$ and some $u\neq0$; take $t=\sup_{C}u$.
+\end{proof}
+
+For $u\in\Vs$ and $t\in\RR$ write $[u\le t]=\{x\in V:u(x)\le t\}$ and similarly $[u\ge t]$, $[u=t]$.
+
+\begin{lemma}[Dichotomy]\label{lem:dich}
+Let $F$ be maximal, $u\in\Vs$, $t\in\RR$. Then $[u\le t]\in F$ or $[u\ge t]\in F$.
+\end{lemma}
+
+\begin{proof}
+If $[u\le t]\notin F$, Lemma \ref{lem:crit} supplies $D\in F$ disjoint from $[u\le t]$, whence $D\subseteq[u\ge t]$.
+\end{proof}
+
+\begin{definition}
+For a maximal filter $F$ and $u\in\Vs$ set $\Sigma_F(u)=\{t\in\RR:[u\le t]\in F\}$ and
+\[
+\sigma_F(u)=\inf\Sigma_F(u)\in[-\infty,+\infty],
+\]
+with $\inf\emptyset=+\infty$. Set
+\[
+Q_F=\{u\in\Vs:\Sigma_F(u)\text{ is open and }\Sigma_F(u)\neq\RR\}.
+\]
+\end{definition}
+
+Since $F$ is upward closed, $\Sigma_F(u)$ is an up-set in $\RR$, hence one of $\emptyset$, $\RR$, $(\sigma,\infty)$, $[\sigma,\infty)$. Thus $u\in Q_F$ if and only if either $\sigma_F(u)=+\infty$, or $\sigma_F(u)\in\RR$ and $[u\le\sigma_F(u)]\notin F$. Note $\sigma_F(0)=0$ and $0\notin Q_F$.
+
+\begin{proposition}\label{prop:sigma}
+Let $F$ be maximal and write $\sigma=\sigma_F$, $Q=Q_F$.
+\begin{enumerate}
+\item\label{it:sub} $\sigma(u+v)\le\sigma(u)+\sigma(v)$ whenever the right side is defined, and $\sigma(\lambda u)=\lambda\sigma(u)$ for $\lambda>0$.
+\item\label{it:tri} For each $u$ exactly one of the following holds: $\sigma(u)$ and $\sigma(-u)$ are both finite and sum to $0$; $\sigma(u)=+\infty$ and $\sigma(-u)=-\infty$; $\sigma(u)=-\infty$ and $\sigma(-u)=+\infty$.
+\item\label{it:N} $N:=\{u:\sigma(u)\in\RR\}$ is a linear subspace and $\sigma|_N$ is linear.
+\item\label{it:M} $M:=\Vs\setminus(Q\cup-Q)$ is a linear subspace contained in $N$, and $Q$ is a convex cone with $Q\cap-Q=\emptyset$, $Q+M=Q$.
+\end{enumerate}
+\end{proposition}
+
+\begin{proof}
+\eqref{it:sub} If $[u\le s],[v\le t]\in F$ then $[u\le s]\cap[v\le t]\in F$ is contained in $[u+v\le s+t]$. Homogeneity is the identity $[\lambda u\le\lambda t]=[u\le t]$.
+
+\eqref{it:tri} If $\sigma(u)=\sigma(-u)=-\infty$ then $[u\le t]$ and $[u\ge s]$ lie in $F$ for all $t<s$, contradicting properness. If $\sigma(u)=+\infty$ then $[u\le t]\notin F$ for all $t$, so $[u\ge t]\in F$ for all $t$ by Lemma \ref{lem:dich}, that is $\sigma(-u)=-\infty$; this rules out both values being $+\infty$. Suppose now both are finite, and put $a=\sigma(u)$, $b=\sigma(-u)$. For $s,t$ with $[u\le t],[u\ge -s]\in F$ properness forces $-s\le t$, so $a+b\ge0$. If $a+b>0$ pick $c$ with $-b<c<a$; then $[u\le c]\notin F$ since $c<a$, and $[u\ge c]\notin F$ since $-c<b$, contradicting Lemma \ref{lem:dich}. Hence $a+b=0$.
+
+\eqref{it:N} By \eqref{it:tri}, $u\in N$ if and only if $\sigma(u)$ and $\sigma(-u)$ are both finite, and then $\sigma(-u)=-\sigma(u)$. Closure under positive scalars is homogeneity, and closure under $u\mapsto-u$ is the previous sentence. If $u,v\in N$ then $\sigma(u+v)\le\sigma(u)+\sigma(v)<\infty$ and $\sigma(-u-v)\le\sigma(-u)+\sigma(-v)<\infty$, so $u+v\in N$ by \eqref{it:tri}; the two inequalities read $\sigma(u+v)\le\sigma(u)+\sigma(v)$ and $-\sigma(u+v)\le-\sigma(u)-\sigma(v)$, hence equality.
+
+\eqref{it:M} Write $E=\{u:\sigma(u)=+\infty\}$ and $D=\{u\in N\setminus\{0\}:[u\le\sigma(u)]\notin F\}$, so that $Q=E\sqcup D$ by the remark preceding the proposition, and by \eqref{it:tri} and Lemma \ref{lem:dich},
+\[
+\Vs=E\sqcup(-E)\sqcup N,\qquad N\setminus\{0\}=D\sqcup(-D)\sqcup(M\cap N\setminus\{0\}),
+\]
+where $M\cap N=\{u\in N:[u=\sigma(u)]\in F\}$. Indeed for $u\in N$ Lemma \ref{lem:dich} at $t=\sigma(u)$ shows that at least one of $[u\le\sigma(u)]$, $[u\ge\sigma(u)]$ lies in $F$, so at least one of $u,-u$ fails to lie in $D$; and both fail exactly when both half-spaces, hence the hyperplane, lie in $F$. Consequently $M=\{u\in N:[u=\sigma(u)]\in F\}$ and $Q\cap-Q=\emptyset$.
+
+$M$ is a subspace: it is stable under scalars, and if $[u=\sigma(u)],[v=\sigma(v)]\in F$ then their intersection lies in $F$ and is contained in $[u+v=\sigma(u)+\sigma(v)]=[u+v=\sigma(u+v)]$.
+
+$E$ is closed under addition: if $\sigma(u)=\sigma(v)=+\infty$ then $\sigma(-u)=\sigma(-v)=-\infty$, so $\sigma(-u-v)=-\infty$ by \eqref{it:sub} and $u+v\in E$ by \eqref{it:tri}. Also $E+N\subseteq E$, since $\sigma(-u-w)\le\sigma(-u)+\sigma(-w)=-\infty$ for $u\in E$, $w\in N$.
+
+$D$ is closed under addition: let $u,v\in D$, so $[u\ge\sigma(u)],[v\ge\sigma(v)]\in F$. If $[u+v\le\sigma(u+v)]$ were in $F$, then the intersection of these three members of $F$ lies in $[u=\sigma(u)]$, forcing $u\in M$, contradiction. Also $D+M\subseteq D$: for $u\in D$ and $w\in M$, if $[u+w\le\sigma(u+w)]\in F$ then intersecting with $[w=\sigma(w)]\in F$ gives a member of $F$ inside $[u\le\sigma(u)]$, contradiction. Finally $D+E\subseteq E$ has been covered by $E+N\subseteq E$. Hence $Q=E\sqcup D$ is a convex cone and $Q+M=Q$.
+\end{proof}
+
+By Proposition \ref{prop:sigma}\eqref{it:N} the linear functional $\sigma|_N$ on $N$ is the restriction of evaluation at some point $a\in V$, so
+\[
+A_F:=\{x\in V:u(x)=\sigma_F(u)\text{ for all }u\in N\}=a+N^{\perp}
+\]
+is a nonempty affine subspace with $\dir A_F=N^{\perp}$, and $\sigma_F$ is recovered from $A_F$ and $Q_F$: it equals $u\mapsto u(a)$ on $N=(\dir A_F)^{\perp}$, is $+\infty$ on $Q\setminus N$ and $-\infty$ on $-Q\setminus N$.
+
+\begin{proposition}\label{prop:supp}
+Let $F$ be maximal, $M=M_F$ as above and $W:=M^{\perp}$. Then $S_F:=A_F+W$ is the least affine subspace belonging to $F$, and $\dir S_F=W$.
+\end{proposition}
+
+\begin{proof}
+Choosing a basis $u_1,\dots,u_k$ of $M$ exhibits $\bigcap_{u\in M}[u=\sigma(u)]$ as a finite intersection of members of $F$, hence a member of $F$; since $M\subseteq N$ this intersection equals $a+M^{\perp}=A_F+W$. If $T\in F$ is affine, write $T$ as an intersection of hyperplanes $[u=t]$; each contains $T$ so lies in $F$, whence $\sigma(u)\le t$ and $\sigma(-u)\le-t$, so $\sigma(u)=t$ and $u\in M$. Thus $T\supseteq S_F$.
+\end{proof}
+
+\begin{proposition}\label{prop:point}
+If $\dim A_F=0$ then $F$ is the principal filter at the point $A_F$, and then $M_F=\Vs$, $W=0$. Conversely every principal filter is maximal.
+\end{proposition}
+
+\begin{proof}
+Let $A_F=\{p\}$, so $N=\Vs$ and $\sigma(u)=u(p)$ for all $u$. If $\{p\}\notin F$, Lemma \ref{lem:crit} gives $C\in F$ with $p\notin C$; since $\{p\}$ is compact and $C$ closed convex, strict separation provides $u$ and $t$ with $u(p)<t$ and $u\ge t$ on $C$. Then $[u\ge t]\in F$, so $\sigma(u)\ge t>u(p)=\sigma(u)$, a contradiction. Hence $\{p\}\in F$ and $F$ is the principal filter at $p$; every hyperplane through $p$ then lies in $F$, so $M=\Vs$. For the converse, if $p\notin C$ then $\{p\}\in F_p$ meets $C$ emptily, so Lemma \ref{lem:crit} applies.
+\end{proof}
+
+\begin{proposition}[Restriction]\label{prop:restrict}
+Let $S\subseteq V$ be an affine subspace. The assignments
+\[
+F\mapsto F|_S:=\{C\in\CC(S):C\in F\},\qquad G\mapsto G^{V}:=\{C\in\CC(V):C\cap S\in G\}
+\]
+are mutually inverse bijections between the maximal filters of $\CC(V)$ containing $S$ and the maximal filters of $\CC(S)$. Moreover $\sigma_{F}(u)=\sigma_{F|_S}(u|_S)$ and $u\in Q_F$ if and only if $u|_S\in Q_{F|_S}$, where $u|_S$ denotes the restriction of the affine function $u$ to $S$.
+\end{proposition}
+
+\begin{proof}
+If $S\in F$ then $C\in F$ if and only if $C\cap S\in F$, which gives $F=(F|_S)^{V}$ and the displayed compatibilities at once. $F|_S$ is a filter, and is maximal by Lemma \ref{lem:crit}: if $B\in\CC(S)\setminus F$ then some $C\in F$ is disjoint from $B$, and $C\cap S\in F|_S$ is disjoint from $B$. Conversely, for maximal $G$ on $\CC(S)$ the collection $G^V$ is a filter containing $S$; if $C\notin G^{V}$ then $C\cap S\notin G$, so some $B\in G$ is disjoint from $C\cap S$, and since $B\subseteq S$ it is disjoint from $C$. Finally $(G^{V})|_S=G$.
+\end{proof}
+
+Here $\CC(S)$ is understood via any affine isomorphism $S\cong\RR^{\dim S}$; the invariants transport accordingly. Combining Propositions \ref{prop:supp} and \ref{prop:restrict}, every maximal filter is determined by a maximal filter on its support $S_F$ whose own $M$ invariant vanishes.
+
+\section{Vector space orders}\label{sec:orders}
+
+Throughout this section $U$ is a finite dimensional real vector space. A vector space order $\prec$ on $U$ is determined by its positive cone $P=\{v:v\succ0\}$, which is a convex cone with $U=P\sqcup\{0\}\sqcup(-P)$; conversely any such cone defines a vector space order. Call such a $P$ a \emph{lex cone}.
+
+\begin{lemma}\label{lem:lex}
+Let $P\subseteq U$ be a lex cone, $k=\dim U$. There is a basis $v_1,\dots,v_k$ of $U$ with
+\[
+P=\Big\{\textstyle\sum_i c_iv_i:\ c_j>0\ \text{where}\ j=\max\{i:c_i\neq0\}\Big\}.
+\]
+The subspaces $U_i=\mathrm{span}(v_1,\dots,v_i)$ depend only on $P$, and are exactly the order-convex subspaces of $U$; the orientation of $U_i/U_{i-1}$ determined by $v_i$ likewise depends only on $P$. Conversely a complete flag together with an orientation of each successive quotient determines a lex cone.
+\end{lemma}
+
+\begin{proof}
+Since $P\cup(-P)=U$, the cone $P$ spans $U$ and so has nonempty interior; the same holds for $-P$, and as $P\cap(-P)=\emptyset$ the closure $\overline{P}$ misses the interior of $-P$, so $\overline{P}\neq U$. A closed convex cone other than $U$ has a supporting functional: there is $\ell\neq0$ with $\ell\ge0$ on $P$. If $\ell(x)>0$ and $x\notin P$ then $x\neq0$ and $-x\in P$, contradicting $\ell(-x)\ge0$; hence $\{\ell>0\}\subseteq P$ and
+\[
+P=\{\ell>0\}\sqcup\big(P\cap\ker\ell\big),
+\]
+where $P\cap\ker\ell$ is a lex cone in $\ker\ell$. Induction on $k$ produces $v_1,\dots,v_{k-1}$ for $\ker\ell$ and then $v_k$ with $\ell(v_k)>0$ gives the displayed description.
+
+For the uniqueness clauses, let $U'\subseteq U$ be an order-convex subspace, $U'\neq0$, and let $j$ be least with $\ell_j|_{U'}\neq0$, where $\ell_1,\dots,\ell_k$ is the basis of $U^{*}$ dual to $v_1,\dots,v_k$ read in reverse, so that $P=\{c:(\ell_k(c),\dots)\ \text{has last nonzero coordinate positive}\}$; concretely take $j$ least with $U'\not\subseteq U_{k-j}$. Order-convexity gives $U'\supseteq U_i$ for the corresponding $i$: choose $x\in U'$ with $\ell(x)>0$ for the relevant leading functional $\ell$; for any $y$ killed by the earlier functionals and $\mu$ large, $\mu x\pm y\succ0$, so $-\mu x\prec y\prec\mu x$ with $\mu x\in U'$, whence $y\in U'$. Thus the order-convex subspaces are precisely the $U_i$, which are therefore intrinsic; the induced order on $U_i/U_{i-1}$ is one-dimensional, hence an orientation, and it is intrinsic for the same reason. The converse construction is the displayed formula.
+\end{proof}
+
+\begin{definition}\label{def:dual}
+Let $P$ be a lex cone on $U$ with flag $U_0\subset\cdots\subset U_k$ as in Lemma \ref{lem:lex}. For $\ell\in U^{*}\setminus\{0\}$ let $i(\ell)$ be least with $\ell|_{U_{i}}\neq0$; then $\ell$ kills $U_{i(\ell)-1}$ and so induces a nonzero functional on the oriented line $U_{i(\ell)}/U_{i(\ell)-1}$. Set
+\[
+P^{\vee}=\{\ell\in U^{*}\setminus\{0\}:\text{the induced functional is positive}\}.
+\]
+\end{definition}
+
+\begin{lemma}\label{lem:dualcone}
+$P^{\vee}$ is a lex cone on $U^{*}$, with flag $U_k^{\perp}\subset U_{k-1}^{\perp}\subset\cdots\subset U_0^{\perp}$. The map $P\mapsto P^{\vee}$ is a bijection from lex cones on $U$ to lex cones on $U^{*}$, and $U'\subseteq U$ is order-convex for $P$ if and only if $(U')^{\perp}\subseteq U^{*}$ is order-convex for $P^{\vee}$. In the basis notation of Lemma \ref{lem:lex}, with $v^{1},\dots,v^{k}$ dual to $v_1,\dots,v_k$,
+\[
+P^{\vee}=\Big\{\textstyle\sum_i a_iv^{i}:\ a_j>0\ \text{where}\ j=\min\{i:a_i\neq0\}\Big\}.
+\]
+\end{lemma}
+
+\begin{proof}
+For $\ell=\sum_ia_iv^i$ one has $\ell|_{U_i}=0$ exactly when $a_1=\cdots=a_i=0$, so $i(\ell)=\min\{i:a_i\neq0\}$ and the induced functional on $U_{i(\ell)}/U_{i(\ell)-1}$ sends the positive generator $v_{i(\ell)}$ to $a_{i(\ell)}$. This gives the displayed formula, which is a lex cone by Lemma \ref{lem:lex} applied to the basis $v^{k},\dots,v^{1}$ of $U^{*}$, with associated flag $\mathrm{span}(v^1,\dots,v^i)=U_i^{\perp}$ read in the stated order. Since a lex cone is equivalent to its flag with orientations, and annihilation is an order-reversing bijection between complete flags of $U$ and of $U^{*}$ matching $U_i/U_{i-1}$ with the dual of $U_{i-1}^{\perp}/U_{i}^{\perp}$, the map $P\mapsto P^{\vee}$ is bijective and matches flag members with flag members. Order-convex subspaces are flag members on both sides by Lemma \ref{lem:lex}.
+\end{proof}
+
+\section{Uniqueness}\label{sec:unique}
+
+\begin{lemma}[Relative separation]\label{lem:sep-rel}
+Let $T\subseteq V$ be a nonempty affine subspace and let $C,D\subseteq T$ be nonempty disjoint convex sets. Then there are $u\in\Vs$ and $t\in\RR$ with $u\le t$ on $C$, $u\ge t$ on $D$, and $u$ nonconstant on $T$.
+\end{lemma}
+
+\begin{proof}
+Let $W=\dir T$ and choose a linear complement $U$, so $V=W\oplus U$. The sets $C+U$ and $D+U$ are convex and nonempty. They are disjoint: if $c+u_1=d+u_2$ with $c\in C$, $d\in D$, $u_1,u_2\in U$, then $c-d\in W\cap U=0$, so $c=d\in C\cap D$. Lemma \ref{lem:sep} gives $u\neq0$ and $t$ with $u\le t$ on $C+U$ and $u\ge t$ on $D+U$. If $u(v)\neq0$ for some $v\in U$ then $u$ is unbounded above on $C+U$, which it is not; so $u$ vanishes on $U$, and since $u\neq0$ it does not vanish on $W$. Restricting the two inequalities to $C$ and $D$ finishes.
+\end{proof}
+
+\begin{theorem}\label{thm:unique}
+Two maximal filters $F,F'$ on $\CC(V)$ with $\sigma_F=\sigma_{F'}$ and $Q_F=Q_{F'}$ are equal.
+\end{theorem}
+
+\begin{proof}
+Write $\sigma=\sigma_F=\sigma_{F'}$, $Q=Q_F=Q_{F'}$ and $M=\Vs\setminus(Q\cup-Q)$, so that $S:=\bigcap_{u\in M}[u=\sigma(u)]$ is an affine subspace depending only on the shared invariants. By Proposition \ref{prop:supp} applied to each filter, $S\in F$ and $S\in F'$.
+
+Suppose $C\in F\setminus F'$. By Lemma \ref{lem:crit} applied to $F'$ there is $C'\in F'$ with $C\cap C'=\emptyset$. The sets $C\cap S$ and $C'\cap S$ are members of $F$ and of $F'$ respectively, hence nonempty; they are convex, disjoint, and contained in $S$. Lemma \ref{lem:sep-rel} gives $u\in\Vs$ and $t\in\RR$ with $C\cap S\subseteq[u\le t]$, $C'\cap S\subseteq[u\ge t]$, and $u$ nonconstant on $S$.
+
+Then $[u\le t]\in F$, so $\sigma(u)\le t$; and $[u\ge t]\in F'$, so no $[u\le s]$ with $s<t$ lies in $F'$, giving $\sigma(u)\ge t$. Hence $\sigma(u)=t$ is finite. Now $[u\le\sigma(u)]\in F$ shows $u\notin Q$, and $[-u\le\sigma(-u)]=[u\ge t]\in F'$ shows $-u\notin Q$. Therefore $u\in M$, so $u$ is constant on $S$, contradicting the last clause of Lemma \ref{lem:sep-rel}. So $F\subseteq F'$, and maximality of $F$ forces $F=F'$.
+\end{proof}
+
+\begin{remark}
+The proof uses no induction on dimension and does not invoke Proposition \ref{prop:restrict}. Passing to $S$ before separating replaces the inductive descent: the only functionals that can separate two members of the same maximal filter's support are those constant on that support, and those are exactly the ones the invariants already record.
+\end{remark}
+
+\section{Realization}\label{sec:realize}
+
+Fix integers $1\le d\le m\le n$, a basis $f_1,\dots,f_n$ of $V$ with dual basis $u^{1},\dots,u^{n}$, and a point $a\in V$. Write $x_i=u^{i}(x-a)$. Put
+\[
+A_0=a+\mathrm{span}(f_1,\dots,f_d),\qquad
+W_0=\mathrm{span}(f_1,\dots,f_m),\qquad
+M_0=\mathrm{span}(u^{m+1},\dots,u^{n}),
+\]
+\[
+N_0=\mathrm{span}(u^{d+1},\dots,u^{n}),\qquad
+Q_0=\Big\{\textstyle\sum_i a_iu^{i}:\ a_j>0\ \text{where}\ j=\min\{i\le m:a_i\neq0\}\Big\}.
+\]
+Thus $Q_0$ is the set of functionals whose first nonvanishing coordinate among the first $m$ is positive, and $M_0$ is the set of those with no nonvanishing coordinate among the first $m$.
+
+For $K,M\ge1$ and $0<c\le1$ let $C(K,M,c)$ be the set of $x\in V$ satisfying
+\begin{align}
+x_j&=0&&(m<j\le n),\label{eq:h0}\\
+x_d&\ge K,\label{eq:h1}\\
+x_i&\ge Mx_{i+1}+M&&(1\le i\le d-1),\label{eq:h2}\\
+x_{d+1}&\le c,\qquad x_j\le c\,x_{j-1}&&(d+1<j\le m),\label{eq:h3}\\
+x_jx_d&\ge1&&(d<j\le m).\label{eq:h4}
+\end{align}
+
+Every constraint but \eqref{eq:h4} is a closed half-space or hyperplane. The constraint \eqref{eq:h4}, taken together with \eqref{eq:h1}, cuts out $\{(s,y):s\ge K,\ sy\ge1\}$ in the coordinates $(x_d,x_j)$, which is convex because $s\mapsto1/s$ is convex on $[K,\infty)$. So $C(K,M,c)$ is closed and convex.
+
+\begin{lemma}\label{lem:gen}
+$C(K,M,c)$ is nonempty, and $C(K',M',c')\subseteq C(K,M,c)$ whenever $K\le K'$, $M\le M'$ and $c'\le c$. In particular the sets $C(k,k,1/k)$, $k\ge1$, form a decreasing sequence.
+\end{lemma}
+
+\begin{proof}
+On $C(K,M,c)$ one has $x_d\ge K\ge1$, hence $x_i\ge x_{i+1}>0$ for $i<d$ by \eqref{eq:h2} and downward induction, and $x_j\ge1/x_d>0$ for $j>d$ by \eqref{eq:h4}. For nonemptiness choose $T\ge K$ with $Tc^{\,m-d}\ge1$ and set $x_d=T$, $x_i=Mx_{i+1}+M$ downward from $i=d-1$, $x_{d+j}=c^{\,j}$ for $1\le j\le m-d$, and $x_j=0$ for $j>m$. Monotonicity in the parameters uses the positivity just established: $M'x_{i+1}+M'\ge Mx_{i+1}+M$ needs $x_{i+1}\ge0$, and $c'x_{j-1}\le cx_{j-1}$ needs $x_{j-1}\ge0$. Constraint \eqref{eq:h4} does not involve the parameters.
+\end{proof}
+
+\begin{lemma}\label{lem:forcing}
+Let $F$ be a maximal filter containing every $C(K,M,c)$. Then $\sigma_F(u)=u(a)$ for $u\in N_0$, $Q_F=Q_0$, $M_F=M_0$ and $A_F=A_0$.
+\end{lemma}
+
+\begin{proof}
+Write $u=\sum_ia_iu^{i}$, so that $u(x)=u(a)+\sum_{i\le m}a_ix_i$ on any $C(K,M,c)$, by \eqref{eq:h0}.
+
+If $a_i=0$ for all $i\le m$, that is $u\in M_0$, then $C(K,M,c)\subseteq[u=u(a)]$, so the hyperplane lies in $F$ and $u\in M_F$ with $\sigma_F(u)=u(a)$.
+
+Otherwise let $k=\min\{i\le m:a_i\neq0\}$ and assume $a_k>0$, the case $a_k<0$ following by negation.
+
+Suppose $k\le d$. Fix $t$. If $k=d$ then $u(x)\ge u(a)+a_dK-\sum_{j>d}|a_j|$ on $C(K,M,c)$, using $0<x_j\le c\le1$ for $j>d$, and $K$ may be taken large. If $k<d$ then $x_k\ge Mx_{k+1}+M$ and $x_{k+1}\ge x_i$ for $k+1\le i\le d$, so
+\[
+u(x)\ \ge\ u(a)+\Big(a_kM-\sum_{i=k+1}^{d}|a_i|\Big)x_{k+1}+a_kM-\sum_{j>d}|a_j|,
+\]
+and $M$ may be taken large enough to make both the coefficient of $x_{k+1}$ and the constant term as required. Either way $[u\ge t]\in F$ for every $t$, so $\sigma_F(u)=+\infty$ and $u\in Q_F$.
+
+Suppose $k>d$. Then $x_j\le c^{\,j-k}x_k$ for $j>k$ by \eqref{eq:h3}, so
+\[
+u(x)-u(a)\ \ge\ x_k\Big(a_k-\sum_{j>k}|a_j|c^{\,j-k}\Big)\ >\ 0
+\]
+once $c$ is small, since $x_k>0$. Hence $C(K,M,c)\cap[u\le u(a)]=\emptyset$ and $[u\le u(a)]\notin F$. Also $u(x)-u(a)\le c\sum_{j\ge k}|a_j|$, using $x_j\le c$ for $j>d$, so $[u\le u(a)+\varepsilon]\in F$ for every $\varepsilon>0$ once $c$ is small. Hence $\sigma_F(u)=u(a)$ and $u\in Q_F$.
+
+The three cases partition $\Vs$ and match the three cases defining $Q_0$, $-Q_0$ and $M_0$, so $Q_F=Q_0$ and $M_F=M_0$. The second and third cases give $N_F=N_0$ and $\sigma_F=u\mapsto u(a)$ there, so $A_F=A_0$.
+\end{proof}
+
+\begin{proposition}\label{prop:exists}
+For all $1\le d\le m\le n$, every basis $f_1,\dots,f_n$ and every $a\in V$ there is a maximal filter $F$ with $A_F=A_0$, $Q_F=Q_0$ and $M_F=M_0$.
+\end{proposition}
+
+\begin{proof}
+By Lemma \ref{lem:gen} the sets $C(k,k,1/k)$, $k\ge1$, form a decreasing sequence of nonempty closed convex sets, so they generate a filter; extend it to a maximal one by Zorn's lemma and apply Lemma \ref{lem:forcing}.
+\end{proof}
+
+\begin{remark}\label{rem:polyhedral}
+The family used here is smaller than one might expect. Only affine $\phi$ and the single hyperbolic constraint \eqref{eq:h4} appear, so each $C(K,M,c)$ is a polyhedron intersected with one hyperbolic region, and the rate families of Remark \ref{rem:rates} are not needed for existence.
+
+The filter these sets generate need not be maximal. For $(d,m)=(1,2)$ the generators are $\{x_1\ge K,\ x_2\le1/K,\ x_1x_2\ge1\}$, and the set $\{x_1\ge1,\ 1/\log(x_1+2)\le x_2\le1\}$ is closed and convex, meets every generator, and contains none; so the generated filter admits a proper refinement. It can also be maximal: for $m=1$ the generators are the tail-rays of a line, and a closed convex set meeting all of them meets that line in a ray, hence contains a generator.
+
+Either way nothing is lost, because Lemma \ref{lem:forcing} does not assert that the family generates the filter, only that it forces the invariants of any maximal extension, which by Theorem \ref{thm:unique} pins that extension uniquely.
+\end{remark}
+
+\section{The classification}\label{sec:primal}
+
+\begin{theorem}\label{thm:dual}
+The map $F\mapsto(A_F,Q_F)$ is a bijection from the maximal filters of $\CC(V)$ onto the set of pairs $(A,Q)$ in which $A\subseteq V$ is a nonempty affine subspace and $Q\subseteq\Vs\setminus\{0\}$ is a convex cone with $Q\cap(-Q)=\emptyset$ such that, writing $M=\Vs\setminus(Q\cup(-Q))$ and $N=(\dir A)^{\perp}$,
+\begin{enumerate}
+\item $M$ is a linear subspace and $M\subseteq N$;
+\item $N/M$ is order-convex in $\Vs/M$ for the lex cone induced by $Q$;
+\item if $\dir A=0$ then $M=\Vs$.
+\end{enumerate}
+\end{theorem}
+
+\begin{proof}
+Injectivity is Theorem \ref{thm:unique}, since $\sigma_F$ is determined by $A_F$ and $Q_F$ as noted after Proposition \ref{prop:sigma}.
+
+That the invariants of a maximal filter satisfy (1)--(3): Proposition \ref{prop:sigma}\eqref{it:M} gives that $Q$ is a convex cone with $Q\cap-Q=\emptyset$, that $M$ is a subspace, and that $M\subseteq N$; from $Q+M=Q$ the image $\overline{Q}$ of $Q$ in $\Vs/M$ satisfies $\Vs/M=\overline{Q}\sqcup\{0\}\sqcup(-\overline{Q})$, so it is a lex cone. For order-convexity of $N/M$, let $\overline{w}\succ0$ with $\overline{v}-\overline{w}\succ0$ and $v\in N$. If $w\notin N$ then $w\in E$ in the notation of Proposition \ref{prop:sigma}\eqref{it:M}, and $v-w\in N+(-E)\subseteq-E$, contradicting $v-w\in Q$. Clause (3) is Proposition \ref{prop:point}.
+
+Surjectivity: let $(A,Q)$ satisfy (1)--(3). If $\dir A=0$ then $Q=\emptyset$ and the principal filter at $A$ has these invariants, by Proposition \ref{prop:point}. Otherwise put $W=M^{\perp}$, so $\dir A\subseteq W$ by (1), and fix $a\in A$. Clause (2) makes $Q/M$ a lex cone on $\Vs/M$ with $N/M$ order-convex; under the identification $\Vs/M\cong W^{*}$ this is a lex cone on $W^{*}$ whose associated flag contains the annihilator of $\dir A$. By Lemma \ref{lem:lex} and Lemma \ref{lem:dualcone} choose a basis $f_1,\dots,f_m$ of $W$, extended to a basis $f_1,\dots,f_n$ of $V$, such that $\dir A=\mathrm{span}(f_1,\dots,f_d)$ with $d=\dim\dir A\ge1$ and such that $Q$ is the cone $Q_0$ of Section \ref{sec:realize} in the resulting coordinates; the marked position $d$ is available because $\dir A$ is order-convex, hence a flag member. Proposition \ref{prop:exists}, applied with these data and this base point, supplies a maximal filter $F$ on $\CC(V)$ with $A_F=A_0=A$, $Q_F=Q_0=Q$ and $M_F=M_0=M$.
+\end{proof}
+
+\begin{proof}[Proof of Theorem \ref{thm:main}]
+Given a maximal filter $F$, set $A=A_F$, $W=M_F^{\perp}$ and let $\prec$ be the vector space order on $W$ whose positive cone is $(\overline{Q_F})^{\vee}$ under the identification $\Vs/M_F\cong W^{*}$ of Lemma \ref{lem:dualcone}. Clause (2) of Theorem \ref{thm:dual} and Lemma \ref{lem:dualcone} say exactly that $\dir A$ is order-convex in $W$, clause (1) says $\dir A\subseteq W$, and clause (3) says $W=0$ when $\dim A=0$. The passage $(A,Q)\leftrightarrow(A,W,\prec)$ is bijective because $M$ determines and is determined by $W$, and $Q$ by $\overline{Q}$ together with $M$, while $\overline{Q}\leftrightarrow\prec$ is the bijection of Lemma \ref{lem:dualcone}. Theorem \ref{thm:dual} then transfers.
+\end{proof}
+
+\begin{corollary}\label{cor:strata}
+The non-principal maximal filters of $\CC(\RR^n)$ form a disjoint union, over pairs $1\le d\le m\le n$, of the sets of data consisting of: an affine subspace $A$ with $\dim A=d$; a subspace $W\supseteq\dir A$ with $\dim W=m$; a complete flag of $W$ through $\dir A$; and an orientation of each successive quotient of that flag. The stratum indexed by $(d,m)$ fibers over the affine Grassmannian of $d$-flats with fiber a $2^{m}$-fold cover of a partial-flag bundle.
+\end{corollary}
+
+The filter attached to $(A,W,\prec)$ contains the sets $C(K,M,c)$ of Section \ref{sec:realize}, written in an affine frame adapted to the data: the coordinates $x_1,\dots,x_d$ along $\dir A$ run to $+\infty$ in the hierarchy $x_1\gg\cdots\gg x_d$ fixed by the orientations, the coordinates $x_{d+1},\dots,x_m$ transverse to $A$ inside $S$ run to $0$ from the positive side in the hierarchy $x_{d+1}\gg\cdots\gg x_m$, and the remaining coordinates vanish. By Lemma \ref{lem:forcing} those sets already determine the invariants, and by Theorem \ref{thm:unique} the invariants determine the filter.
+
+\section{Dimensions one, two and three}\label{sec:low}
+
+For $n=1$ the maximal filters are the principal ones, together with $d=m=1$: the flat is $\RR$, the flag is trivial and the datum is an orientation. This gives the two filters generated by the rays $[t,\infty)$ and by the rays $(-\infty,t]$.
+
+For $n=2$ there are four families.
+\begin{itemize}
+\item Principal filters, one for each point of $\RR^2$.
+\item $(d,m)=(1,1)$: a line $A$ with an orientation, two per line. The support is $A$ itself, and the filter consists of the closed convex sets containing a ray of $A$.
+\item $(d,m)=(1,2)$: a line $A$ with an orientation, together with a side of $A$; four per line. The support is $\RR^2$ and no line belongs to the filter. Taking $A$ to be the $y$-axis, upward orientation and right side, the filter is generated by the sets
+\[
+\{(x,y):y\ge Y,\ g(y)\le x\le\varepsilon\},\qquad g\ \text{convex, positive, decreasing to}\ 0 .
+\]
+\item $(d,m)=(2,2)$: a complete oriented flag of $\RR^2$, that is a point of $S^{1}\times\{\pm\}$. These filters are translation invariant. For the flag oriented by $+e_2$ then $+e_1$ the filter is generated by the sets $\{(x,y):x\ge a,\ y\ge f(x)\}$ with $f$ convex.
+\end{itemize}
+
+For $n=3$ the strata are indexed by $(d,m)$ with $1\le d\le m\le3$:
+\[
+\begin{array}{ll}
+(1,1)&\text{an oriented line; the filter lives on it.}\\
+(1,2)&\text{an oriented line, a plane through it, a side of the line in that plane.}\\
+(1,3)&\text{an oriented line, a plane through it, a side of the line in it, a side of the plane.}\\
+(2,2)&\text{a plane, and a complete oriented flag of its direction space.}\\
+(2,3)&\text{the same, together with a side of the plane.}\\
+(3,3)&\text{a complete oriented flag of }\RR^3 .
+\end{array}
+\]
+
+\section{Remarks}\label{sec:remarks}
+
+\begin{remark}[Neither invariant is redundant]\label{rem:independent}
+The cone $Q_F$ alone does not determine $F$. Take $V=\RR^2$ and let $F_{\mathrm{h}}$ and $F_{\mathrm{p}}$ be maximal filters containing, respectively, the sets
+\[
+H_k=\{(x,y):x,y\ge0,\ xy\ge1,\ (k+1)x\le1\},\qquad
+P_k=\{(x,y):x\ge k,\ y\ge x^2\}\qquad(k\in\mathbb{N}),
+\]
+each family being a decreasing sequence of nonempty closed convex sets. Writing $u=(a,b)$ for $u(x,y)=ax+by$, the level sets $\Sigma(u)$ of the two filters are
+\[
+\begin{array}{lcccc}
+ & b>0 & b<0 & b=0<a & b=0\ge a\\
+F_{\mathrm{h}} & \emptyset & \RR & (0,\infty) & [0,\infty)\\
+F_{\mathrm{p}} & \emptyset & \RR & \emptyset & \RR\ \text{or}\ [0,\infty)
+\end{array}
+\]
+the last entry being $[0,\infty)$ when $a=0$. By the criterion of Section \ref{sec:prelim} a level set contributes to $Q$ exactly when it is open and proper, so
+\[
+Q_{F_{\mathrm{h}}}=Q_{F_{\mathrm{p}}}=\{u:b>0\}\cup\{u:b=0,\ a>0\},
+\]
+the lexicographic cone. The two filters are distinct, since $H_0\cap P_2=\emptyset$.
+
+What differs is where $N$ cuts the cone. For $F_{\mathrm{h}}$ one has $N=\{b=0\}$, so $Q$ decomposes as $E=\{b>0\}$ together with $D=\{b=0,a>0\}$, and $A_{F_{\mathrm{h}}}$ is the $y$-axis: this is the stratum $(d,m)=(1,2)$ of Section \ref{sec:low}, hugging a line from the right while escaping upward. For $F_{\mathrm{p}}$ one has $N=0$, so $Q=E$ and $D=\emptyset$, and $A_{F_{\mathrm{p}}}=\RR^2$: this is the stratum $(2,2)$, translation invariant. The same cone carries both, and only the flat distinguishes them.
+\end{remark}
+
+\begin{remark}[Rates are not moduli]\label{rem:rates}
+The family of generators in Section \ref{sec:realize} is indexed by convex functions, but the resulting filter depends only on the flag data. Two filters constructed from different growth rates with the same flag data coincide, by Theorem \ref{thm:unique}. The mechanism is visible in the proof: distinct maximal filters are separated by a hyperplane, and the only invariants a hyperplane can record are linear ones.
+\end{remark}
+
+\begin{remark}[Subfilters generated by restricted rates]\label{rem:subfilter}
+The filter generated by a proper subclass of rates is generally not maximal. In $\RR^2$, let $F_0$ be generated by the sets $\{(x,y):y\ge Y,\ cy^{-k}\le x\le\varepsilon\}$ for $c,\varepsilon>0$, $k\in\mathbb{N}$, $Y>0$. The set
+\[
+G=\{(x,y):y\ge1,\ 1/\log(y+2)\le x\le1\}
+\]
+is closed and convex, since $1/\log(y+2)$ is convex, positive and decreasing to $0$. It meets every member of $F_0$ and contains none of them, so $F_0\cup\{G\}$ generates a strictly larger filter. Equivalently, the filter of closed convex sets whose $K$-points contain a fixed semialgebraic point of $K^2$, for $K$ a real closed field extension of $\RR$, is a proper subfilter of a maximal one: the point $(t,1/t)$ with $t>0$ infinitesimal fails the inequality $t\ge1/\log(1/t)$.
+\end{remark}
+
+\begin{remark}[Germs at a point]\label{rem:germs}
+For $p\in\RR^n$ the closed convex sets containing a neighborhood of $p$ but not $p$ itself cannot form part of a maximal filter, by Proposition \ref{prop:point}; any filter of germs at $p$ refines to the principal filter at $p$, which omits no point. This is the source of the constraint in the last clause of Theorem \ref{thm:main} and the reason there is no family of non-principal maximal filters attached to a point in any dimension.
+\end{remark}
+
+\begin{remark}[Failure of a naive recursion]\label{rem:recursion}
+One might hope for $\mathcal{M}(n)=\RR^n\sqcup(S^{n-1}\times\mathcal{M}(n-1))$, where $\mathcal{M}(n)$ denotes the set of maximal filters. This fails: peeling the leading ray and passing to the quotient forgets whether the peeled ray was an escape direction or an approach direction, so it identifies the $(1,1)$ and $(1,2)$ strata in dimension two. A correct recursion requires the auxiliary family $\widetilde{\mathcal{M}}(k)$ of pairs (flat, order) with the constraint of Theorem \ref{thm:main}(3) dropped, and reads
+\[
+\widetilde{\mathcal{M}}(k)=\big(\RR^{k}\times\mathcal{OF}(k)\big)\sqcup\big(S^{k-1}\times\widetilde{\mathcal{M}}(k-1)\big),\qquad
+\mathcal{M}(n)=\RR^{n}\sqcup\big(S^{n-1}\times\widetilde{\mathcal{M}}(n-1)\big),
+\]
+where $\mathcal{OF}(k)$ is the space of complete oriented flags of $\RR^{k}$.
+\end{remark}
+
+\begin{remark}[What survives without finite dimension]\label{rem:generality}
+Let $V$ be any real normed space. Lemma \ref{lem:crit}, Lemma \ref{lem:dich} and Proposition \ref{prop:sigma} hold verbatim: their proofs use only the lattice structure, properness, and the dichotomy, and the dichotomy follows from the maximality criterion alone. So for a maximal filter on $\CC(V)$ the invariants $\sigma_F$, $N_F$, $M_F$ and $Q_F$ are defined and satisfy the decomposition $\Vs=Q_F\sqcup(-Q_F)\sqcup M_F$ with $M_F$ a subspace and $Q_F$ a convex cone, in any dimension.
+
+Finite dimension is used in exactly three places. Lemma \ref{lem:sep} fails in general: in every infinite dimensional Banach space there are disjoint closed convex sets separated by no continuous functional, so the proof of Theorem \ref{thm:unique} has no substitute there. Proposition \ref{prop:supp} obtains $S_F$ as a finite intersection of hyperplanes, using a basis of $M_F$. And the flat $A_F$ is obtained by representing the linear functional $\sigma_F|_{N_F}$ by a point, which is where reflexivity enters.
+\end{remark}
+
+\begin{remark}[The support may fail to exist]\label{rem:nosupport}
+In $\ell^2$ put $S_n=\{x:x_k=1\ \text{for}\ k\le n\}$. Each $S_n$ is a nonempty closed affine subspace, the sequence decreases, and $\bigcap_nS_n=\emptyset$, since a common point would have every coordinate equal to $1$. The $S_n$ therefore generate a proper filter; let $F$ be a maximal filter containing it. For each $k$ the hyperplane $[x_k=1]$ contains $S_k$ and so lies in $F$, whence the $k$-th coordinate functional lies in $M_F$ with $\sigma_F=1$ there. Thus $M_F$ contains a dense subspace of $(\ell^2)^{*}$, the filter $F$ contains affine subspaces with no least one, and
+\[
+A_F\subseteq\{x:x_k=1\ \text{for all}\ k\}=\emptyset .
+\]
+So both conclusions of Proposition \ref{prop:supp} and of the paragraph following Proposition \ref{prop:sigma} fail. What obstructs them is that $\sigma_F|_{M_F}$ is a linear functional on a dense subspace represented by no point of the space; were it represented by some $p$, the argument of Proposition \ref{prop:point} would collapse $F$ to the principal filter at $p$.
+\end{remark}
+
+\begin{remark}[What the affine sublattice detects]\label{rem:affine}
+Let $\mathcal{A}(V)\subseteq\CC(V)$ be the nonempty closed affine subspaces together with $\emptyset$. This is a meet-sublattice but not a sublattice, joins in $\CC(V)$ of two parallel lines being a slab; filters use only meets, and the two lattices share a bottom element, so for any filter $F$ the trace $F\cap\mathcal{A}(V)$ is a filter on $\mathcal{A}(V)$.
+
+For $F$ maximal the trace is exactly the set of finite intersections of the hyperplanes $[u=\sigma_F(u)]$, $u\in M_F$, together with their affine supersets. One inclusion is the definition of $M_F$; the other is the argument of Proposition \ref{prop:supp}, that an affine member of $F$ is an intersection of hyperplanes each of which lies in $F$. Hence
+\[
+F\cap\mathcal{A}(V)\quad\text{determines and is determined by}\quad\big(M_F,\ \sigma_F|_{M_F}\big),
+\]
+and carries no information about $Q_F$ beyond it. The affine sublattice sees the support data and is blind to the escape and approach flags; the convex lattice sees both. In finite dimensions the trace is the principal filter at $S_F$ by Proposition \ref{prop:supp}, and is therefore maximal in $\mathcal{A}(V)$ only when $F$ is principal, since a maximal filter on $\mathcal{A}(\RR^n)$ is principal at a point: dimension is well founded, so the trace has a least member $A$, and if $\dim A\ge1$ then $\{p\}$ for $p\in A$ is a proper refinement. Remark \ref{rem:nosupport} shows that in infinite dimensions the trace can be free.
+\end{remark}
+
+\begin{remark}[Points of an extension]\label{rem:extension}
+Let $\mathcal{M}$ be the structure with underlying set $\RR^n$ and a predicate for each member of $\CC(\RR^n)$, and let $\mathcal{M}^{*}$ be an $\aleph_1$-saturated elementary extension. Every filter $F$ is finitely satisfiable, so saturation provides $p\in\mathcal{M}^{*}$ with $p\in C^{*}$ for all $C\in F$, and $\{C:p\in C^{*}\}$ is then a filter containing $F$. Hence every maximal filter has the form $\{C:p\in C^{*}\}$; the preceding remark shows that not every $p$ yields a maximal filter, and Theorem \ref{thm:main} identifies the quotient of the set of those that do.
+\end{remark}
+
+\section{The space of maximal filters}\label{sec:space}
+
+Write $\mathcal{M}(V)$ for the set of maximal filters of $\CC(V)$, the set denoted $\mathcal{M}(n)$ in Remark \ref{rem:recursion}. For $C\in\CC(V)$ put
+\[
+V(C)=\{F\in\mathcal{M}(V):C\in F\},
+\]
+and topologize $\mathcal{M}(V)$ by taking $\{V(C):C\in\CC(V)\}$ as a subbase for the closed sets. The $V(C)$ are not themselves the closed sets: the germs $G_k$ of Remark \ref{rem:independent} satisfy $\bigcap_kG_k=\emptyset$ while $\bigcap_kV(G_k)\neq\emptyset$.
+
+The results of this section are formalized; see Appendix \ref{app:formal}.
+
+\begin{lemma}[Covering criterion]\label{lem:cover}
+For $E_1,\dots,E_m\in\CC(V)$ one has $\bigcup_kV(E_k)=\mathcal{M}(V)$ if and only if $\bigcup_kE_k=V$.
+\end{lemma}
+
+\begin{proof}
+If $\bigcup_kE_k=V$ and some $G\in\mathcal{M}(V)$ contained no $E_k$, then Lemma \ref{lem:crit} would supply $D_k\in G$ with $D_k\cap E_k=\emptyset$ for each $k$; the intersection $\bigcap_kD_k$ lies in $G$, hence is nonempty, and any of its points lies outside every $E_k$. Conversely the principal filters lie in $\mathcal{M}(V)$, so a covering of $\mathcal{M}(V)$ covers $V$.
+\end{proof}
+
+\begin{proposition}\label{prop:compact}
+$\mathcal{M}(V)$ is compact and $T_1$. The principal filters are dense, and the map $p\mapsto F_p$ is a homeomorphism onto its image with the Euclidean topology.
+\end{proposition}
+
+\begin{proof}
+For compactness it suffices, by Alexander's subbase lemma, to treat a subbasic family $\{V(C_i)\}_{i\in I}$ with the finite intersection property. A finite subfamily meets in a filter containing each $C_i$, so all finite intersections $C_{i_1}\cap\dots\cap C_{i_k}$ are nonempty; the $C_i$ therefore generate a proper filter, and any maximal extension lies in $\bigcap_iV(C_i)$.
+
+$T_1$: if $F\neq F'$ then some $C$ lies in $F$ and not in $F'$, and $V(C)$ is a closed set separating them in the required sense.
+
+Density: a closed set containing every principal filter is a finite union $\bigcup_kV(E_k)$ intersected over some family, and by Lemma \ref{lem:cover} each such finite union is all of $\mathcal{M}(V)$.
+
+For the last clause, $F_p\in V(C)$ if and only if $p\in C$, so the subspace topology on $\{F_p\}$ is generated by the closed convex sets as closed sets. Closed convex sets are Euclidean-closed, and conversely the $2n$ half-spaces $\{\pm x_i\ge r/\sqrt{n}\}$ cover the complement of the Euclidean ball $B(0,r)$ while avoiding $B(0,r/\sqrt{n})$, so the two topologies agree.
+\end{proof}
+
+By Lemma \ref{lem:cover}, two maximal filters $F$ and $F'$ have disjoint neighborhoods if and only if $V$ is a finite union of closed convex sets, none of which belongs to $F\cap F'$. This is the form used below.
+
+For the rest of the section $V=\RR^2$ and $\ell=\{(x,y):x=0\}$. Write $F_\ell$ for the filter of closed convex sets containing an upward ray of $\ell$, and $F_{+}$, $F_{-}$ for the two filters confined to $\ell$ from the right and from the left with upward escape, as in Section \ref{sec:low}. So $F_\ell$ lies in the stratum $(d,m)=(1,1)$ and $F_{\pm}$ in $(1,2)$, and all three have the same flat $\ell$ and the same escape direction.
+
+\begin{lemma}[Wedge]\label{lem:wedge}
+Let $E$ be closed and convex. If $E$ contains an upward ray of $\ell$ and some point $(x_0,y_0)$ with $x_0>0$, then $E\in F_{+}$.
+\end{lemma}
+
+\begin{proof}
+Let $\{0\}\times[a,\infty)\subseteq E$. For $y\ge a$ and $t\in[0,1]$ the point $(1-t)(0,y)+t(x_0,y_0)$ lies in $E$, so $E$ contains $\{(x,y):0\le x\le x_0,\ y\ge\lambda(x)\}$ for an affine $\lambda$, hence contains a set $\{0\le x\le x_0,\ y\ge M\}$. That set contains a generator of $F_{+}$ for every convex $g$ decreasing to $0$.
+\end{proof}
+
+\begin{theorem}\label{thm:inseparable}
+$F_\ell$ and $F_{+}$ have no disjoint neighborhoods in $\mathcal{M}(\RR^2)$, while $F_{+}$ and $F_{-}$ do.
+\end{theorem}
+
+\begin{proof}
+Suppose $E_1,\dots,E_m$ are closed convex sets with $\bigcup_kE_k=\RR^2$ and no $E_k$ in $F_\ell\cap F_{+}$. Let $\mathcal{L}$ be those $E_k$ containing an upward ray of $\ell$ and $\mathcal{N}$ the rest, so that each member of $\mathcal{N}$ meets $\ell$ in a set bounded above. Every $E\in\mathcal{L}$ lies in $F_\ell$, hence not in $F_{+}$, so by Lemma \ref{lem:wedge} it contains no point with $x>0$; that is, $E\subseteq\{x\le0\}$. Therefore $\{x>0\}\subseteq\bigcup\mathcal{N}$, and since $\bigcup\mathcal{N}$ is a finite union of closed sets it contains the closure $\{x\ge0\}$; in particular each $(0,t)$, reached as the limit of $(1/(n+1),t)$, lies in $\bigcup\mathcal{N}$. The points $(0,n)$, $n\in\mathbb{N}$, are distributed among finitely many members of $\mathcal{N}$, so one of them contains infinitely many, hence meets $\ell$ in a set unbounded above, hence contains an upward ray of $\ell$ and belongs to $\mathcal{L}$. This contradicts $\mathcal{L}\cap\mathcal{N}=\emptyset$.
+
+For the second clause take $E_1=\{x\le0\}$ and $E_2=\{x\ge0\}$. They cover $\RR^2$; $E_1\in F_{-}\setminus F_{+}$ and $E_2\in F_{+}\setminus F_{-}$, so neither lies in $F_{+}\cap F_{-}$.
+\end{proof}
+
+\begin{corollary}\label{cor:nothausdorff}
+$\mathcal{M}(\RR^2)$ is not Hausdorff, and no continuous real function on it separates $F_\ell$ from $F_{+}$. The relation ``has no disjoint neighborhoods from'' is not transitive on $\mathcal{M}(\RR^2)$.
+\end{corollary}
+
+\begin{proof}
+A continuous $f$ with $f(F_\ell)\neq f(F_{+})$ would pull back disjoint neighborhoods. Transitivity fails by Theorem \ref{thm:inseparable}, since $F_\ell$ is inseparable from each of $F_{\pm}$ by symmetry, while $F_{+}$ and $F_{-}$ are separated.
+\end{proof}
+
+Since $\mathcal{M}(V)$ is compact, its maximal Hausdorff quotient $h\mathcal{M}(V)$ is the Gelfand spectrum of $C(\mathcal{M}(V))$, obtained by quotienting by the smallest closed equivalence relation.
+
+\begin{corollary}\label{cor:collapse}
+In $h\mathcal{M}(\RR^2)$ the three filters $F_\ell,F_{+},F_{-}$ are identified. The same holds for each line and each of its two orientations, so the strata $(1,1)$ and $(1,2)$ collapse together to one point per oriented line.
+\end{corollary}
+
+\begin{proof}
+$F_\ell$ is identified with $F_{+}$ and with $F_{-}$ by Corollary \ref{cor:nothausdorff}, and an equivalence relation containing both pairs contains the pair $F_{+},F_{-}$.
+\end{proof}
+
+Proposition \ref{prop:compact} makes $h\mathcal{M}(V)$ a Hausdorff compactification of $\RR^n$. It is strictly finer than the radial compactification: the function $g(x,y)=x/(1+|x|)$ extends continuously, taking the value $c/(1+|c|)$ at every filter with flat $\{x=c\}$, and so separates filters that the sphere at infinity identifies. It is strictly coarser than $\mathcal{M}(V)$ by Corollary \ref{cor:collapse}.
+
+\begin{remark}\label{rem:Dcollapse}
+What Corollary \ref{cor:collapse} discards is exactly the approach datum: the invariants surviving in $h\mathcal{M}(\RR^2)$ are the flat $A_F$ and the escape cone $E$, not the cone $D$ of Proposition \ref{prop:sigma}. The same half is discarded by the affine sublattice, by Remark \ref{rem:affine}, and is the half that the recursion of Remark \ref{rem:recursion} fails to see.
+\end{remark}
+
+The description of $h\mathcal{M}(\RR^2)$ is not settled here. Corollary \ref{cor:collapse} identifies three filters per oriented line and Theorem \ref{thm:inseparable} separates $F_{+}$ from $F_{-}$; what is not proved is that no further identification occurs, which would require exhibiting enough continuous functions to separate distinct oriented lines from one another and from the filters of stratum $(2,2)$. If no further identification occurs, the complement of $\RR^2$ in $h\mathcal{M}(\RR^2)$ is the set of oriented lines together with the $(2,2)$ filters, that is $(S^1\times\RR)\sqcup(S^1\times\{\pm\})=S^1\times[-\infty,+\infty]$.
+
+\begin{question}\label{qn:dflat}
+Does Theorem \ref{thm:inseparable} hold with $\ell$ a $d$-flat in $\RR^n$ and $F_{+}$ a filter of stratum $(d,d+1)$ confined to it? The proof above uses the plane spanned by $\ell$ and the approach direction, but Lemma \ref{lem:cover} is a statement about coverings of $\RR^n$, and the reduction to that plane is not immediate.
+\end{question}
+
+\appendix
+
+\sloppy
+\section{Formalization}\label{app:formal}
+
+The development accompanying this paper \cite{Repo} is written in Lean 4 (toolchain \texttt{leanprover/\allowbreak lean4:v4.28.0}) against Mathlib at revision \texttt{8f9d9cff6bd728b17a\allowbreak 24e163c9402775d\allowbreak 9e6a365}. It comprises 31 files and 564 declarations. Every declaration in it has been compiled, and \texttt{\#print axioms} returns
+\[
+\{\ \texttt{propext},\ \texttt{Classical.choice},\ \texttt{Quot.sound}\ \}
+\]
+for each one. No declaration uses \texttt{sorry}, \texttt{native\_decide}, or any additional axiom, and the axiom audit is compiled as part of the build rather than run as a script over the sources.
+
+\subsection*{What is verified}
+Sections \ref{sec:prelim} through \ref{sec:primal} and Section \ref{sec:space} are formalized in full. Theorem \ref{thm:dual} is \texttt{ConvexFilter.\allowbreak classification} and \texttt{ConvexFilter.\allowbreak classificationEquiv}; Theorem \ref{thm:main} is \texttt{ConvexFilter.\allowbreak classificationPrimalEquiv}; Theorem \ref{thm:unique} is \texttt{ConvexFilter.\allowbreak carrier\_eq\_of\_Aset\_Qset}; Proposition \ref{prop:exists} is \texttt{ConvexFilter.\allowbreak exists\_maximal\_realizing}. Theorem \ref{thm:inseparable} is \texttt{ConvexFilter.\allowbreak Space.\allowbreak not\_separated\_Fline\_Ghyp} together with \texttt{ConvexFilter.\allowbreak Space.\allowbreak separated\_Ghyp\_Fminus}, and Proposition \ref{prop:compact} is \texttt{ConvexFilter.\allowbreak Space.\allowbreak isCompact\_univ} and \texttt{ConvexFilter.\allowbreak Space.\allowbreak t1Space}. Remark \ref{rem:polyhedral} is verified in both directions, and Remarks \ref{rem:independent}, \ref{rem:rates}, \ref{rem:subfilter}, \ref{rem:germs}, \ref{rem:recursion}, \ref{rem:nosupport} and \ref{rem:affine} are verified.
+
+Sections \ref{sec:prelim} and \ref{sec:orders}, and hence the invariants $\sigma_F$, $N_F$, $M_F$ and $Q_F$, are formalized over an arbitrary real normed space; finite dimensionality is a hypothesis only from the construction of the flat $A_F$ onward. This is the content of Remark \ref{rem:generality}, and it is certified by the absence of that hypothesis from the relevant files rather than by a theorem.
+
+Two results proved in the development are not in Mathlib at the pinned revision and may be of independent use: weak separation of two disjoint convex sets in finite dimensions with no topological hypothesis on either (\texttt{ConvexFilter.\allowbreak exists\_separating}), and its relative form controlling the separating functional on a prescribed affine subspace (\texttt{ConvexFilter.\allowbreak exists\_separating\_of\_subset\_affine}).
+
+\subsection*{What is not verified}
+The enumeration of strata in Corollary \ref{cor:strata} and the tables of Section \ref{sec:low} are not formalized. In Section \ref{sec:space}, Corollaries \ref{cor:nothausdorff} and \ref{cor:collapse} are formalized only in the first form: the non-transitivity of inseparability is \texttt{ConvexFilter.\allowbreak Space.\allowbreak separated\_not\_transitive}, while the passage to the maximal Hausdorff quotient, the conditional description of $h\mathcal{M}(\RR^2)$, and Question \ref{qn:dflat} are not. In Remark \ref{rem:generality} the positive claim is certified as described above, while the failure of Lemma \ref{lem:sep} in infinite dimensions is quoted from the literature and not proved here. Remark \ref{rem:extension} is not formalized: the saturation it uses is not available in Mathlib at the pinned revision.
+
+\begin{thebibliography}{9}
+\bibitem{Repo}
+D.~V. Feldman, \emph{Maximal filters in the lattice of closed convex sets: Lean 4 formalization}, GitHub repository, \url{https://github.com/DavidVFeldman/maximal-convex-filters}, 2026.
+\end{thebibliography}
+
+\end{document}

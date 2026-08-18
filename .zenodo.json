@@ -1,0 +1,22 @@
+{
+  "title": "Maximal filters in the lattice of closed convex sets: Lean 4 formalization",
+  "description": "<p>A Lean 4 formalization accompanying the paper <em>Maximal filters in the lattice of closed convex sets</em>. Maximal filters of the lattice of closed convex subsets of R^n are classified by an affine subspace A, a linear subspace W containing the direction space of A, and a vector space order on W in which that direction space is order-convex, subject to W = 0 when A is a point. The development comprises 28 files and 502 declarations; every declaration compiles and its axiom profile is {propext, Classical.choice, Quot.sound}.</p>",
+  "creators": [
+    {
+      "name": "Feldman, David Victor",
+      "orcid": "0000-0001-6943-4833",
+      "affiliation": "University of New Hampshire"
+    }
+  ],
+  "upload_type": "software",
+  "license": "Apache-2.0",
+  "keywords": [
+    "convex geometry",
+    "lattice theory",
+    "maximal filter",
+    "vector space order",
+    "Lean 4",
+    "formalized mathematics"
+  ],
+  "version": "1.0"
+}

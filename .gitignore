@@ -1,0 +1,17 @@
+.lake/
+build/
+*.olean
+*.ilean
+*.trace
+*.hash
+
+# LaTeX auxiliaries
+*.aux
+*.log
+*.out
+*.toc
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.bbl
+*.blg
