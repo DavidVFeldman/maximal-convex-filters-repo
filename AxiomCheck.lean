@@ -23,6 +23,7 @@ import ConvexFilters.Quotient
 import ConvexFilters.Fibres
 import ConvexFilters.FibreCounterexample
 import ConvexFilters.Boundary
+import ConvexFilters.LimitStrict
 
 -- Theorem 6.1, the classification by the pair (A, Q).
 #print axioms ConvexFilter.classification
@@ -186,3 +187,21 @@ import ConvexFilters.Boundary
 #print axioms ConvexFilter.Limits.ridge_eq_one
 #print axioms ConvexFilter.Limits.tendsto_coe_levVal
 #print axioms ConvexFilter.Limits.tendsto_lim
+
+-- WO-14: Corollary 10.5.  The algebra of functions converging along every maximal convex
+-- filter properly contains the restrictions to the plane of the continuous functions on the
+-- maximal Hausdorff quotient (ConvexFilters/LimitStrict.lean).
+#print axioms ConvexFilter.Limits.tendsto_prin_toFilter
+#print axioms ConvexFilter.Limits.tendsto_prinQ_toFilter
+#print axioms ConvexFilter.Limits.mem_A_comp_prinQ
+#print axioms ConvexFilter.Limits.lim_comp_prinQ
+#print axioms ConvexFilter.Limits.isBounded_comp_prinQ
+#print axioms ConvexFilter.Limits.eq_zero_of_not_principal
+#print axioms ConvexFilter.Limits.eq_zero_of_notMem_range_prinQ
+#print axioms ConvexFilter.Limits.notMem_range_prinQ_of_clusterPt
+#print axioms ConvexFilter.Limits.tendsto_cocompact_ridge_of_continuous_extension
+#print axioms ConvexFilter.Limits.not_exists_continuous_extension_ridge
+#print axioms ConvexFilter.Limits.exists_mem_A_not_continuous_on_quotient
+#print axioms ConvexFilter.Limits.ridge_mem_A_b
+#print axioms ConvexFilter.Limits.ridge_notMem_restrictionsOfContinuous
+#print axioms ConvexFilter.Limits.restrictionsOfContinuous_ssubset_A_b

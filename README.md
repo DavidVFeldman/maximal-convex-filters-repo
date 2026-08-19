@@ -16,7 +16,7 @@ The classifying space is therefore a finite disjoint union of bundles over flag 
 
 ```
 paper/           the manuscript, LaTeX source and compiled PDF
-ConvexFilters/   the Lean 4 development, 41 files
+ConvexFilters/   the Lean 4 development, 42 files
 AxiomCheck.lean  the axiom audit, part of the default build target
 notes/           conventions of the formalization that do not appear in the paper
 ```
@@ -34,7 +34,7 @@ The default target includes `AxiomCheck`, so a successful build emits the axiom 
 
 ## Formalization scope
 
-Sections 2 through 6 and Section 9 of the paper are formalized in full, together with all but one of the remarks: 826 declarations across 41 files, every one compiled, none using `sorry`, `native_decide`, or any additional axiom.
+Sections 2 through 6 and Section 9 of the paper are formalized in full, together with all but one of the remarks: 842 declarations across 42 files, every one compiled, none using `sorry`, `native_decide`, or any additional axiom.
 
 | Result | Lean name |
 | --- | --- |
