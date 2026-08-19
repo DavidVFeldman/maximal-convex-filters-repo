@@ -16,7 +16,7 @@ The classifying space is therefore a finite disjoint union of bundles over flag 
 
 ```
 paper/           the manuscript, LaTeX source and compiled PDF
-ConvexFilters/   the Lean 4 development, 31 files
+ConvexFilters/   the Lean 4 development, 41 files
 AxiomCheck.lean  the axiom audit, part of the default build target
 notes/           conventions of the formalization that do not appear in the paper
 ```
@@ -34,7 +34,7 @@ The default target includes `AxiomCheck`, so a successful build emits the axiom 
 
 ## Formalization scope
 
-Sections 2 through 6 and Section 9 of the paper are formalized in full, together with all but one of the remarks: 564 declarations across 31 files, every one compiled, none using `sorry`, `native_decide`, or any additional axiom.
+Sections 2 through 6 and Section 9 of the paper are formalized in full, together with all but one of the remarks: 826 declarations across 41 files, every one compiled, none using `sorry`, `native_decide`, or any additional axiom.
 
 | Result | Lean name |
 | --- | --- |
@@ -46,12 +46,17 @@ Sections 2 through 6 and Section 9 of the paper are formalized in full, together
 | Lemma 4.1, relative separation | `ConvexFilter.exists_separating_of_subset_affine` |
 | Lemma 9.1, the covering criterion | `ConvexFilter.Space.exists_mem_of_cover` |
 | Proposition 9.2, compact and $T_1$ | `ConvexFilter.Space.isCompact_univ`, `ConvexFilter.Space.t1Space` |
-| Theorem 9.4, inseparability | `ConvexFilter.Space.not_separated_Fline_Ghyp`, `ConvexFilter.Space.separated_Ghyp_Fminus` |
+| Theorem 9.4, inseparability (all $d$, $n$) | `ConvexFilter.Space.not_separated_gen`, `ConvexFilter.Space.separated_gen` |
+| Lemma 9.3, the wedge | `ConvexFilter.Space.wedge_gen` |
+| Lemma 9.7, continuity of the invariant | `ConvexFilter.Space.sigma_continuous` |
 | Corollary 9.5, non-transitivity | `ConvexFilter.Space.separated_not_transitive` |
+| Corollary 9.6, the Hausdorff collapse | `ConvexFilter.Space.eq_of_continuous_of_not_separated`, `ConvexFilter.Space.t2Quotient_mk_eq_of_not_separated` |
+| Theorem 9.8 | `ConvexFilter.Space.levVal_separates_quotient`, `ConvexFilter.Space.boundaryMap_injective_on_quotient`, `ConvexFilter.Space.boundaryMap_surjective` |
+| Proposition 9.9, the boundary is not a cylinder | `ConvexFilter.Space.not_boundary_homeomorph` |
 
 Sections 2 and 3, and hence the invariants, are formalized over an arbitrary real normed space. Finite dimensionality enters only from the construction of the flat onward, and this is certified by the absence of that hypothesis from the relevant files rather than by a theorem.
 
-**Not formalized:** the passage to the maximal Hausdorff quotient in Corollary 9.6 and the conditional description that follows it, Question 9.8, the enumeration of strata in Corollary 6.2, the tables of Section 7, the failure of Lemma 2.2 in infinite dimensions (quoted from the literature), and Remark 8.9, whose saturation argument has no counterpart in Mathlib at the pinned revision. Appendix A of the paper states the boundary precisely.
+**Not formalized:** Question 9.10, the enumeration of strata in Corollary 6.2, the tables of Section 7, the failure of Lemma 2.2 in infinite dimensions (quoted from the literature), and Remark 8.9, whose saturation argument has no counterpart in Mathlib at the pinned revision. Appendix A of the paper states the boundary precisely.
 
 Two results in the development are not in Mathlib at the pinned revision and may be of independent use: weak separation of two disjoint convex sets in finite dimensions with no topological hypothesis on either side, and its relative form controlling the separating functional on a prescribed affine subspace.
 

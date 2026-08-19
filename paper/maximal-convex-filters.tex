@@ -16,6 +16,7 @@
 
 \DeclareMathOperator{\dir}{dir}
 \newcommand{\CC}{\mathscr{C}}
+\newcommand{\AAA}{\mathscr{A}}
 \newcommand{\RR}{\mathbb{R}}
 \newcommand{\Vs}{V^{*}}
 
@@ -27,14 +28,14 @@
 \address{Department of Mathematics and Statistics, University of New Hampshire, Durham, NH 03824, USA}
 \email{dvfinnh@gmail.com}
 
-\subjclass[2020]{Primary 52A20; Secondary 06B10, 06F20, 68V20}
+\subjclass[2020]{Primary 52A20; Secondary 06B10, 06F20, 54D35, 68V20}
 
 \keywords{closed convex set, lattice of convex sets, maximal filter, support function, vector space order, lexicographic cone, complete flag, Lean 4, formalization}
 
 \date{August 2026}
 
 \begin{abstract}
-The closed convex subsets of $\RR^n$ form a complete lattice under inclusion. We classify its maximal filters. Each is determined by an affine subspace $A$, a linear subspace $W$ containing the direction space of $A$, and a vector space order on $W$ in which the direction space of $A$ is order-convex; the only constraint is that $W=0$ when $A$ is a point, in which case the filter is principal. In particular the classifying space is a finite disjoint union of bundles over flag manifolds: no continuous modulus records the rate at which a filter approaches the flat it hugs. The results of Sections 2 through 6 and 9, and all but one of the remarks, are formalized in Lean 4; as is the topology of Section \ref{sec:space}. See Appendix \ref{app:formal}.
+The closed convex subsets of $\RR^n$ form a complete lattice under inclusion. We classify its maximal filters. Each is determined by an affine subspace $A$, a linear subspace $W$ containing the direction space of $A$, and a vector space order on $W$ in which the direction space of $A$ is order-convex; the only constraint is that $W=0$ when $A$ is a point, in which case the filter is principal. In particular the classifying space is a finite disjoint union of bundles over flag manifolds: no continuous modulus records the rate at which a filter approaches the flat it hugs. The results of Sections 2 through 6, and all but one of the remarks, are formalized in Lean 4, as are Sections \ref{sec:space} and \ref{sec:alg}. See Appendix \ref{app:formal}.
 \end{abstract}
 
 \maketitle
@@ -62,6 +63,10 @@ subject to the single constraint that $W=0$ whenever $\dim A=0$. The filters wit
 Under the bijection, $S:=A+W$ is the least affine subspace belonging to the filter, $A$ is the least affine subspace all of whose neighborhoods in $S$ belong to it, the restriction of $\prec$ to $\dir A$ records the escape to infinity along $A$, and the order induced on $W/\dir A$ records the side from which $S$ approaches $A$. Sections \ref{sec:prelim}--\ref{sec:realize} prove the theorem in the equivalent dual form of Theorem \ref{thm:dual}; Section \ref{sec:primal} derives the form above. Section \ref{sec:low} lists the strata for $n\le 3$.
 
 Two features of the statement deserve emphasis. First, the constraint in the last clause is not a normalization but a theorem (Proposition \ref{prop:point}): a filter of germs at a point is contained in the principal filter there and omits the point itself, so it is never maximal. In dimension one this is why there are exactly two non-principal maximal filters rather than a family attached to each point. Second, the data are discrete apart from the choice of $A$, $W$ and the flag: two filters that hug the same flat from the same side at different rates coincide. The mechanism is Lemma \ref{lem:sep} together with the argument of Theorem \ref{thm:unique}: two distinct maximal filters must be separated by a hyperplane, and hyperplanes are linear.
+
+Maximal filters in a lattice of closed sets carry a compact $T_1$ topology by the representation of Wallman \cite{Wallman}, and a Hausdorff one when the lattice is a normal base in the sense of Frink \cite{Frink}. The lattice $\CC(\RR^n)$ meets neither hypothesis: it is not distributive, and it is not closed under finite unions, so it is not a base for the closed sets of $\RR^n$ in the sense those constructions require. Section \ref{sec:space} applies Wallman's construction to it anyway, and Theorem \ref{thm:inseparable} measures what the missing normality costs.
+
+In the language of abstract convexity, developed in van de Vel \cite{vdV93}, a convexity is normal when two disjoint convex closed sets can be screened within it, and the compactification theory is carried by superextensions, whose points are maximal linked systems rather than maximal filters \cite{vanMill}. Van de Vel \cite{vdV83} proved that for $n>1$ Euclidean convexity admits no compactification in the sense of a compact topological convex structure containing $\RR^n$ as a dense convex subspace with a continuous hull operator. That theorem and Proposition \ref{prop:notcylinder} are independent, as Remark \ref{rem:vdv} records. The maximal filters of $\CC(\RR^n)$ do not appear in that literature, and the question settled in \cite{vdV83} does not appear to have been taken up since.
 
 \section{Filters in \texorpdfstring{$\CC(V)$}{C(V)}}\label{sec:prelim}
 
@@ -479,78 +484,200 @@ For the last clause, $F_p\in V(C)$ if and only if $p\in C$, so the subspace topo
 
 By Lemma \ref{lem:cover}, two maximal filters $F$ and $F'$ have disjoint neighborhoods if and only if $V$ is a finite union of closed convex sets, none of which belongs to $F\cap F'$. This is the form used below.
 
-For the rest of the section $V=\RR^2$ and $\ell=\{(x,y):x=0\}$. Write $F_\ell$ for the filter of closed convex sets containing an upward ray of $\ell$, and $F_{+}$, $F_{-}$ for the two filters confined to $\ell$ from the right and from the left with upward escape, as in Section \ref{sec:low}. So $F_\ell$ lies in the stratum $(d,m)=(1,1)$ and $F_{\pm}$ in $(1,2)$, and all three have the same flat $\ell$ and the same escape direction.
+Fix $1\le d<n$, a $d$-flat $A$, a $(d+1)$-flat $S\supseteq A$, and $u\in\Vs$ with $A=S\cap[u=c]$ where $c=u(A)$. Let $\pi:S\to A$ be the projection along $\ker(u|_S)^{\perp}$, and let $G$ be a maximal filter of $\CC(A)$ with $A_G=A$. Proposition \ref{prop:restrict} makes $F_A=\{C:C\cap A\in G\}$ a maximal filter of $\CC(V)$ of stratum $(d,d)$, and Theorem \ref{thm:dual} supplies the filter $F_{+}$ of stratum $(d,d+1)$ with flat $A$, support $S$, the escape data of $G$, and approach from the side $u>c$. For $d=1$, $n=2$ these are the filters called $F_\ell$ and $F_{+}$ in Section \ref{sec:low}.
 
 \begin{lemma}[Wedge]\label{lem:wedge}
-Let $E$ be closed and convex. If $E$ contains an upward ray of $\ell$ and some point $(x_0,y_0)$ with $x_0>0$, then $E\in F_{+}$.
+Let $E$ be closed and convex with $E\cap A\in G$, and suppose $E$ contains a point $q\in S$ with $u(q)>c$. Then $E\in F_{+}$.
 \end{lemma}
 
 \begin{proof}
-Let $\{0\}\times[a,\infty)\subseteq E$. For $y\ge a$ and $t\in[0,1]$ the point $(1-t)(0,y)+t(x_0,y_0)$ lies in $E$, so $E$ contains $\{(x,y):0\le x\le x_0,\ y\ge\lambda(x)\}$ for an affine $\lambda$, hence contains a set $\{0\le x\le x_0,\ y\ge M\}$. That set contains a generator of $F_{+}$ for every convex $g$ decreasing to $0$.
+Put $C=E\cap S$, and suppose $C\notin F_{+}$. By Lemma \ref{lem:crit} there is $D\in F_{+}$ with $C\cap D=\emptyset$, and $D\cap S$ is again a member. Lemma \ref{lem:sep-rel} separates $C$ from $D\cap S$ inside $S$: there are $f\in\Vs$ and $t$ with $f\le t$ on $C$, $f\ge t$ on $D\cap S$, and $f$ nonconstant on $S$.
+
+If $\sigma_{F_{+}}(f)$ is infinite then $f$ or $-f$ lies in the escape cone, which $F_{+}$ shares with $F_A$; since $E\cap A\in G$ the set $C$ meets every member of $F_A$, so $f$ is bounded above on sets escaping in that direction, forcing $-f\in Q_{F_{+}}$ and contradicting $f\le t$ on $C$.
+
+Otherwise write $f=\lambda u+m$ with $m$ annihilating $\dir S$. Then $m\in M_{F_{+}}$, because $S\in F_{+}$, so $\lambda\neq0$ as $f$ is nonconstant on $S$. The point $q$ has $u(q)>c$ and lies in $C$, while every member of $F_{+}$ approaches $A$ from the side $u>c$; comparing with $f\le t$ on $C$ and $f\ge t$ on $D\cap S$ forces $\lambda<0$, whence $-f\in Q_{F_{+}}$, contradicting Proposition \ref{prop:sigma} at the level $\sigma_{F_{+}}(f)$.
 \end{proof}
 
 \begin{theorem}\label{thm:inseparable}
-$F_\ell$ and $F_{+}$ have no disjoint neighborhoods in $\mathcal{M}(\RR^2)$, while $F_{+}$ and $F_{-}$ do.
+$F_A$ and $F_{+}$ have no disjoint neighborhoods in $\mathcal{M}(V)$. The two filters of stratum $(d,d+1)$ approaching $A$ inside $S$ from opposite sides do have disjoint neighborhoods.
 \end{theorem}
 
 \begin{proof}
-Suppose $E_1,\dots,E_m$ are closed convex sets with $\bigcup_kE_k=\RR^2$ and no $E_k$ in $F_\ell\cap F_{+}$. Let $\mathcal{L}$ be those $E_k$ containing an upward ray of $\ell$ and $\mathcal{N}$ the rest, so that each member of $\mathcal{N}$ meets $\ell$ in a set bounded above. Every $E\in\mathcal{L}$ lies in $F_\ell$, hence not in $F_{+}$, so by Lemma \ref{lem:wedge} it contains no point with $x>0$; that is, $E\subseteq\{x\le0\}$. Therefore $\{x>0\}\subseteq\bigcup\mathcal{N}$, and since $\bigcup\mathcal{N}$ is a finite union of closed sets it contains the closure $\{x\ge0\}$; in particular each $(0,t)$, reached as the limit of $(1/(n+1),t)$, lies in $\bigcup\mathcal{N}$. The points $(0,n)$, $n\in\mathbb{N}$, are distributed among finitely many members of $\mathcal{N}$, so one of them contains infinitely many, hence meets $\ell$ in a set unbounded above, hence contains an upward ray of $\ell$ and belongs to $\mathcal{L}$. This contradicts $\mathcal{L}\cap\mathcal{N}=\emptyset$.
+Let $E_1,\dots,E_m$ be closed convex sets covering $V$ with no $E_k$ in $F_A\cap F_{+}$. Split them by whether $E_k\cap A\in G$. If $E\cap A\in G$ then $E\in F_A$, hence $E\notin F_{+}$, so by Lemma \ref{lem:wedge} $E$ contains no point of $S$ with $u>c$; that is, $E\cap S\subseteq[u\le c]$. Therefore $\{x\in S:u(x)>c\}$ is covered by those $E_k$ with $E_k\cap A\notin G$, and since their union is closed it contains $\{x\in S:u(x)\ge c\}$, in particular $A$. Their traces on $A$ are then finitely many closed convex sets covering $A$, so by Lemma \ref{lem:cover} applied in $A$ one of them lies in $G$, contrary to the choice of the class.
 
-For the second clause take $E_1=\{x\le0\}$ and $E_2=\{x\ge0\}$. They cover $\RR^2$; $E_1\in F_{-}\setminus F_{+}$ and $E_2\in F_{+}\setminus F_{-}$, so neither lies in $F_{+}\cap F_{-}$.
+For the second clause take $E_1=[u\le c]$ and $E_2=[u\ge c]$: they cover $V$, and each lies in exactly one of the two filters.
+\end{proof}
+
+\begin{corollary}\label{cor:notnormal}
+Euclidean closed convexity is not normal: there are disjoint members of $\CC(\RR^2)$ that cannot be screened within $\CC(\RR^2)$. The failure involves unbounded members only, since two disjoint bounded members of $\CC(\RR^n)$ are screened by the two closed half-spaces of a strictly separating hyperplane.
+\end{corollary}
+
+\begin{proof}
+Let $\ell$ be a line and $D$ a generator of a filter of stratum $(1,2)$ confined to $\ell$, so $\ell\cap D=\emptyset$. Suppose $C',D'\in\CC(\RR^2)$ satisfy $C'\cup D'=\RR^2$, $\ell\subseteq C'\setminus D'$ and $D\subseteq D'\setminus C'$. A closed convex set that is neither a half-plane nor $\RR^2$ has complement with convex hull $\RR^2$, so $C'$ and $D'$ are half-planes; write $C'=[u\le a]$ and $D'=[u\ge b]$ with $b\le a$, the union being $\RR^2$. Then $\ell\subseteq[u<b]$, so $u$ is constant on $\ell$ with value $c<b$, and $u$ is a multiple of a functional vanishing on $\dir\ell$. But $D$ meets every neighbourhood of $\ell$ in the direction of approach, so $D$ contains points with $u$ arbitrarily close to $c$, while $D\subseteq[u>a]$ and $a\ge b>c$.
+
+For the second clause, disjoint bounded members are compact, hence strictly separated by a hyperplane, and the two closed half-spaces it bounds screen them.
 \end{proof}
 
 \begin{corollary}\label{cor:nothausdorff}
-$\mathcal{M}(\RR^2)$ is not Hausdorff, and no continuous real function on it separates $F_\ell$ from $F_{+}$. The relation ``has no disjoint neighborhoods from'' is not transitive on $\mathcal{M}(\RR^2)$.
+$\mathcal{M}(V)$ is not Hausdorff for $n\ge2$, and no continuous real function separates $F_A$ from $F_{+}$. Inseparability is not a transitive relation on $\mathcal{M}(V)$.
 \end{corollary}
 
 \begin{proof}
-A continuous $f$ with $f(F_\ell)\neq f(F_{+})$ would pull back disjoint neighborhoods. Transitivity fails by Theorem \ref{thm:inseparable}, since $F_\ell$ is inseparable from each of $F_{\pm}$ by symmetry, while $F_{+}$ and $F_{-}$ are separated.
+A continuous $f$ with $f(F_A)\neq f(F_{+})$ would pull back disjoint neighborhoods. Transitivity fails since $F_A$ is inseparable from the filters approaching from either side, which are separated from each other.
 \end{proof}
-
-Since $\mathcal{M}(V)$ is compact, its maximal Hausdorff quotient $h\mathcal{M}(V)$ is the Gelfand spectrum of $C(\mathcal{M}(V))$, obtained by quotienting by the smallest closed equivalence relation.
 
 \begin{corollary}\label{cor:collapse}
-In $h\mathcal{M}(\RR^2)$ the three filters $F_\ell,F_{+},F_{-}$ are identified. The same holds for each line and each of its two orientations, so the strata $(1,1)$ and $(1,2)$ collapse together to one point per oriented line.
+In the maximal Hausdorff quotient $h\mathcal{M}(V)$, the filter $F_A$ is identified with both filters of stratum $(d,d+1)$ over the pair $A\subseteq S$.
 \end{corollary}
 
+The quotient is not merely a collapse. The following functions descend to it and, in dimension two, separate everything that survives.
+
+\begin{lemma}\label{lem:phifunctions}
+Let $u\in\Vs$ and let $\varphi:[-\infty,+\infty]\to\RR$ be continuous. Then $F\mapsto\varphi(\sigma_F(u))$ is continuous on $\mathcal{M}(V)$.
+\end{lemma}
+
 \begin{proof}
-$F_\ell$ is identified with $F_{+}$ and with $F_{-}$ by Corollary \ref{cor:nothausdorff}, and an equivalence relation containing both pairs contains the pair $F_{+},F_{-}$.
+It suffices that $F\mapsto\sigma_F(u)$ be continuous into $[-\infty,+\infty]$. If $\sigma_F(u)=c$ is finite and $\delta>0$, the set of filters containing neither $[u\le c-\delta]$ nor $[u\ge c+\delta]$ is an open neighborhood of $F$, and any $G$ in it contains $[u\ge c-\delta]$ and $[u\le c+\delta]$ by Lemma \ref{lem:dich}, so $|\sigma_G(u)-c|\le\delta$. If $\sigma_F(u)=+\infty$ then $[u\le T]\notin F$ for all $T$, and the filters omitting $[u\le T]$ form an open neighborhood on which $\sigma\ge T$; symmetrically for $-\infty$.
 \end{proof}
 
-Proposition \ref{prop:compact} makes $h\mathcal{M}(V)$ a Hausdorff compactification of $\RR^n$. It is strictly finer than the radial compactification: the function $g(x,y)=x/(1+|x|)$ extends continuously, taking the value $c/(1+|c|)$ at every filter with flat $\{x=c\}$, and so separates filters that the sphere at infinity identifies. It is strictly coarser than $\mathcal{M}(V)$ by Corollary \ref{cor:collapse}.
+\begin{theorem}\label{thm:hM2}
+For $n=2$ the map $F\mapsto\sigma_F$ separates the points of $h\mathcal{M}(\RR^2)$, and there is a bijection of sets
+\[
+h\mathcal{M}(\RR^2)\setminus\RR^2\ \longleftrightarrow\ (S^1\times\RR)\sqcup(S^1\times\{\pm\})=S^1\times[-\infty,+\infty],
+\]
+carrying a class to its primary escape direction together with its offset.
+\end{theorem}
+
+\begin{proof}
+By Lemma \ref{lem:phifunctions} the functions $\varphi\circ\sigma_{(\cdot)}(u)$ are continuous, so filters with different $\sigma$ are separated in $h\mathcal{M}(\RR^2)$. Conversely $\sigma_F$ determines $N_F$, hence $\dir A_F$ and, through the finite values, $A_F$; and it determines the escape cone. Among non-principal filters in $\RR^2$ these data leave exactly the fibres $\{F_\ell,F_{+},F_{-}\}$ over each oriented line, which Corollary \ref{cor:collapse} identifies, and singletons over each filter of stratum $(2,2)$. Two filters of stratum $(2,2)$ with the same primary escape direction $v$ and opposite tie-break differ at any $u$ annihilating $v$, where one has $\sigma=+\infty$ and the other $-\infty$. Principal filters are separated from each other and from the rest by $C_0$ functions, by Proposition \ref{prop:compact}. The displayed set is the set of oriented lines together with the stratum $(2,2)$, by Section \ref{sec:low}.
+\end{proof}
+
+The bijection is not a homeomorphism, and no other bijection is.
+
+\begin{proposition}\label{prop:notcylinder}
+The boundary $h\mathcal{M}(\RR^2)\setminus\RR^2$ is compact Hausdorff and admits an uncountable family of pairwise disjoint nonempty open sets. It is therefore not second countable, and is homeomorphic to no second countable space; in particular it is not homeomorphic to $S^1\times[-\infty,+\infty]$, and the bijection of Theorem \ref{thm:hM2} is not continuous.
+\end{proposition}
+
+\begin{proof}
+Compactness is Proposition \ref{prop:compact} together with the openness in $h\mathcal{M}(\RR^2)$ of the image of $\RR^2$, which holds because that image is dense and locally compact in a compact Hausdorff space. For $s\in\RR$ let $u_s$ be a nonzero functional annihilating $(1,s)$. By Lemma \ref{lem:phifunctions} the set $U_s$ of boundary classes at which $\sigma(u_s)$ is finite is open, and it is nonempty, containing the class of the filter of stratum $(1,1)$ over the line through the origin in direction $(1,s)$. If $s\neq s'$ then $U_s\cap U_{s'}=\emptyset$: a maximal filter whose $N$ contains two independent functionals has a zero-dimensional flat, hence is principal by Proposition \ref{prop:point}, hence is not in the boundary. A countable base would contain a distinct basic set inside each $U_s$, making $\RR$ countable.
+\end{proof}
+
+\begin{remark}\label{rem:finer}
+The quotient topology is strictly finer than the product topology on the displayed set. The extended support value at a fixed functional is continuous on $h\mathcal{M}(\RR^2)$ and finite exactly on the classes over lines normal to that functional, so a class over a line is not approached by classes over lines of a different direction; in $S^1\times[-\infty,+\infty]$ the fibre $\{v\}\times\RR$ is approached by the fibres over nearby directions. The enumeration of the boundary survives the quotient; its identification as a topological cylinder does not.
+\end{remark}
+
+\begin{remark}\label{rem:vdv}
+Proposition \ref{prop:notcylinder} and the theorem of \cite{vdV83} are independent. The object forbidden there carries a convexity: a compact topological convex structure with $\RR^n$ as a dense convex subspace and a continuous hull operator, which for $n>1$ does not exist. The space $\mathcal{M}(\RR^n)$ carries no convexity and does exist; what fails is Hausdorffness, and, after passage to the Hausdorff quotient, second countability of the boundary. The two accounts agree in dimension one, where the totally bounded uniformity compatible with the linear convexity of $\RR$ compactifies it to a closed interval and $\mathcal{M}(\RR)$ is $[-\infty,+\infty]$, and both break at $n=2$ on configurations of half-planes: \cite{vdV83} on covers of $\RR^2$ by two open half-planes, Lemma \ref{lem:cover} on the fact that two closed convex sets covering $\RR^2$ are half-planes.
+\end{remark}
 
 \begin{remark}\label{rem:Dcollapse}
 What Corollary \ref{cor:collapse} discards is exactly the approach datum: the invariants surviving in $h\mathcal{M}(\RR^2)$ are the flat $A_F$ and the escape cone $E$, not the cone $D$ of Proposition \ref{prop:sigma}. The same half is discarded by the affine sublattice, by Remark \ref{rem:affine}, and is the half that the recursion of Remark \ref{rem:recursion} fails to see.
 \end{remark}
 
-The description of $h\mathcal{M}(\RR^2)$ is not settled here. Corollary \ref{cor:collapse} identifies three filters per oriented line and Theorem \ref{thm:inseparable} separates $F_{+}$ from $F_{-}$; what is not proved is that no further identification occurs, which would require exhibiting enough continuous functions to separate distinct oriented lines from one another and from the filters of stratum $(2,2)$. If no further identification occurs, the complement of $\RR^2$ in $h\mathcal{M}(\RR^2)$ is the set of oriented lines together with the $(2,2)$ filters, that is $(S^1\times\RR)\sqcup(S^1\times\{\pm\})=S^1\times[-\infty,+\infty]$.
+Theorem \ref{thm:hM2} enumerates the boundary in the plane and Proposition \ref{prop:notcylinder} shows that the enumeration is not a homeomorphism. The corresponding description in higher dimension is Question \ref{qn:fibre}.
 
-\begin{question}\label{qn:dflat}
-Does Theorem \ref{thm:inseparable} hold with $\ell$ a $d$-flat in $\RR^n$ and $F_{+}$ a filter of stratum $(d,d+1)$ confined to it? The proof above uses the plane spanned by $\ell$ and the approach direction, but Lemma \ref{lem:cover} is a statement about coverings of $\RR^n$, and the reduction to that plane is not immediate.
+\begin{question}\label{qn:fibre}
+Does $\sigma$ separate the points of $h\mathcal{M}(\RR^n)$ for $n\ge3$? Theorem \ref{thm:inseparable} collapses each fibre of $\sigma$ one step at a time, from stratum $(d,d)$ to $(d,d+1)$; a fibre in higher dimension ranges over $m$ and over the flag on $N/M$, so the collapse of a whole fibre requires the wedge to be iterated up that flag.
 \end{question}
+
+\section{Functions with limits along maximal filters}\label{sec:alg}
+
+Proposition \ref{prop:notcylinder} closes the topological route: the boundary of the Hausdorff quotient admits no continuous injection into a second countable space, so no parametrization of it can be continuous. The structure the quotient discards is nevertheless visible to functions that are not continuous on $\mathcal{M}(V)$ but do converge along each of its points.
+
+A maximal filter $F$ generates a filter of subsets of $V$, and $\lim_Ff=L$ means that for every $\varepsilon>0$ some $C\in F$ has $|f-L|<\varepsilon$ throughout $C$; the limit is unique when it exists, since $F$ is closed under intersection. Let
+\[
+\AAA=\{f:V\to\RR\ :\ \lim_Ff\ \text{exists for every}\ F\in\mathcal{M}(V)\},
+\]
+and $\AAA_b$ its bounded part. No continuity is imposed on $f$ and none follows.
+
+\begin{proposition}\label{prop:algebra}
+$\AAA$ is a commutative $\RR$-algebra with unit and each $\lambda_F(f)=\lim_Ff$ is an $\RR$-algebra homomorphism $\AAA\to\RR$. One has $\lambda_{F_p}(f)=f(p)$, and for non-principal $F$ every bounded set is missed by some member of $F$, so $\lambda_F$ depends only on the restriction of $f$ to the complement of any bounded set.
+\end{proposition}
+
+\begin{proof}
+For the algebra structure intersect the two members witnessing the limits of $f$ and $g$. For the last clause, a non-principal $F$ has $\dim A_F\ge1$ by Proposition \ref{prop:point}, so some $u$ has $\sigma_F(u)=+\infty$ and $[u\ge t]\in F$ for every $t$.
+\end{proof}
+
+Three families of members. Write $\sigma_F(u)\in[-\infty,+\infty]$ as in Section \ref{sec:prelim}.
+
+\begin{proposition}\label{prop:members}
+$C_0(V)\subseteq\AAA_b$, with $\lambda_F=0$ at every non-principal $F$. For $u\in\Vs$ and continuous $\varphi:[-\infty,+\infty]\to\RR$ the function $\varphi\circ u$ lies in $\AAA_b$, with $\lambda_F=\varphi(\sigma_F(u))$. For $u\neq0$ and $c\in\RR$ the indicators $\mathbf{1}[u>c]$ and $\mathbf{1}[u\ge c]$ lie in $\AAA_b$, and at a filter with $\sigma_F(u)=c$ their limits are
+\[
+(1,1)\ \text{if}\ u\in D_F,\qquad(0,1)\ \text{if}\ u\in M_F,\qquad(0,0)\ \text{if}\ -u\in D_F.
+\]
+\end{proposition}
+
+\begin{proof}
+The first is Proposition \ref{prop:algebra}. For the second, if $\sigma_F(u)$ is finite then $[u\le\sigma_F(u)+\delta]\in F$ and $[u\ge\sigma_F(u)-\delta]\in F$, the latter because otherwise some member would lie in $[u\le\sigma_F(u)-\delta]$; the infinite cases are the definition of $\sigma$. For the third, if $u\in D_F$ then $[u\le c]\notin F$, so by Lemma \ref{lem:crit} some member is disjoint from it and both indicators are $1$ there; if $u\in M_F$ the hyperplane $[u=c]$ belongs to $F$ and carries the values $0$ and $1$; the remaining case is the mirror of the first. Proposition \ref{prop:sigma} makes the three cases exhaustive.
+\end{proof}
+
+\begin{theorem}\label{thm:charsep}
+$F\mapsto\lambda_F$ is injective on $\mathcal{M}(V)$.
+\end{theorem}
+
+\begin{proof}
+Suppose $\lambda_F=\lambda_{F'}$. Taking $\varphi$ continuous and injective in Proposition \ref{prop:members} gives $\sigma_F=\sigma_{F'}$, hence $N_F=N_{F'}$, $A_F=A_{F'}$, and equality of the escape cones. For $u\in N_F$ the indicator pair then decides which of $u\in D_F$, $u\in M_F$, $-u\in D_F$ holds, and decides it the same way for $F'$; so $Q_F=Q_{F'}$, and Theorem \ref{thm:dual} gives $F=F'$.
+\end{proof}
+
+So the algebra recovers the classification, and it does so through functions that Proposition \ref{prop:notcylinder} shows cannot be continuous: the indicators of Proposition \ref{prop:members} are discontinuous on $\mathcal{M}(V)$ at exactly the fibres they separate. Convergence along every maximal filter is strictly weaker than continuity on the space of maximal filters, and the gap is the approach datum $D_F$ that Corollary \ref{cor:collapse}, Remark \ref{rem:affine} and Remark \ref{rem:recursion} each discard.
+
+The algebra is strictly larger than the continuous functions on the quotient.
+
+\begin{lemma}\label{lem:ridge}
+Let $h(x,y)=\max\big(0,1-|y-x^{2}|\big)$ on $\RR^{2}$. Then $h$ is continuous and bounded, $h(x,x^{2})=1$ for every $x$, and $\lambda_Fh=0$ at every non-principal $F$; in particular $h\in\AAA_b\setminus C_0(\RR^2)$.
+\end{lemma}
+
+\begin{proof}
+Let $B=\{|y-x^{2}|\le1\}$ be the band supporting $h$, and let $P=\{y\ge x^{2}+2\}$, which is closed and convex and disjoint from $B$. If $P\in F$ then $F$ has a member missing $B$. Otherwise Lemma \ref{lem:crit} gives $E\in F$ disjoint from $P$, so $E$ lies below $x^2+2$; and $E\cap B$ is then bounded, since for $p,q\in E\cap B$ the midpoint lies in $E$ and satisfies $y-x^{2}\ge(p_1-q_1)^{2}/4-1$, forcing $(p_1-q_1)^{2}<12$, after which the band bounds the second coordinate. Proposition \ref{prop:algebra} removes a bounded set.
+\end{proof}
+
+\begin{corollary}\label{cor:strictly}
+$\AAA_b(\RR^2)$ properly contains the continuous functions on $h\mathcal{M}(\RR^2)$, restricted to $\RR^2$.
+\end{corollary}
+
+\begin{proof}
+Were $h$ the restriction of a continuous function on the compact space $h\mathcal{M}(\RR^2)$, it would vanish off the image of $\RR^2$ by Lemma \ref{lem:ridge}, so for $\varepsilon>0$ the set $\{|h|\ge\varepsilon\}$ would be closed in that space, hence compact, and contained in the image of $\RR^2$, which is open by Proposition \ref{prop:notcylinder}; then $h\in C_0(\RR^2)$, contradicting Lemma \ref{lem:ridge}.
+\end{proof}
+
+The obstruction is geometric: no unbounded closed convex set is trapped along a curve of unbounded curvature, so a function concentrated near such a curve is invisible to every maximal filter while remaining visible at infinity.
 
 \appendix
 
 \sloppy
 \section{Formalization}\label{app:formal}
 
-The development accompanying this paper \cite{Repo} is written in Lean 4 (toolchain \texttt{leanprover/\allowbreak lean4:v4.28.0}) against Mathlib at revision \texttt{8f9d9cff6bd728b17a\allowbreak 24e163c9402775d\allowbreak 9e6a365}. It comprises 31 files and 564 declarations. Every declaration in it has been compiled, and \texttt{\#print axioms} returns
+The development accompanying this paper \cite{Repo} is written in Lean 4 (toolchain \texttt{leanprover/\allowbreak lean4:v4.28.0}) against Mathlib at revision \texttt{8f9d9cff6bd728b17a\allowbreak 24e163c9402775d\allowbreak 9e6a365}. It comprises 41 files and 826 declarations. Every declaration in it has been compiled, and \texttt{\#print axioms} returns
 \[
 \{\ \texttt{propext},\ \texttt{Classical.choice},\ \texttt{Quot.sound}\ \}
 \]
 for each one. No declaration uses \texttt{sorry}, \texttt{native\_decide}, or any additional axiom, and the axiom audit is compiled as part of the build rather than run as a script over the sources.
 
 \subsection*{What is verified}
-Sections \ref{sec:prelim} through \ref{sec:primal} and Section \ref{sec:space} are formalized in full. Theorem \ref{thm:dual} is \texttt{ConvexFilter.\allowbreak classification} and \texttt{ConvexFilter.\allowbreak classificationEquiv}; Theorem \ref{thm:main} is \texttt{ConvexFilter.\allowbreak classificationPrimalEquiv}; Theorem \ref{thm:unique} is \texttt{ConvexFilter.\allowbreak carrier\_eq\_of\_Aset\_Qset}; Proposition \ref{prop:exists} is \texttt{ConvexFilter.\allowbreak exists\_maximal\_realizing}. Theorem \ref{thm:inseparable} is \texttt{ConvexFilter.\allowbreak Space.\allowbreak not\_separated\_Fline\_Ghyp} together with \texttt{ConvexFilter.\allowbreak Space.\allowbreak separated\_Ghyp\_Fminus}, and Proposition \ref{prop:compact} is \texttt{ConvexFilter.\allowbreak Space.\allowbreak isCompact\_univ} and \texttt{ConvexFilter.\allowbreak Space.\allowbreak t1Space}. Remark \ref{rem:polyhedral} is verified in both directions, and Remarks \ref{rem:independent}, \ref{rem:rates}, \ref{rem:subfilter}, \ref{rem:germs}, \ref{rem:recursion}, \ref{rem:nosupport} and \ref{rem:affine} are verified.
+Sections \ref{sec:prelim} through \ref{sec:primal} and Sections \ref{sec:space} and \ref{sec:alg} are formalized in full, with one exception noted below. Theorem \ref{thm:dual} is \texttt{ConvexFilter.\allowbreak classification} and \texttt{ConvexFilter.\allowbreak classificationEquiv}; Theorem \ref{thm:main} is \texttt{ConvexFilter.\allowbreak classificationPrimalEquiv}; Theorem \ref{thm:unique} is \texttt{ConvexFilter.\allowbreak carrier\_eq\_of\_Aset\_Qset}; Proposition \ref{prop:exists} is \texttt{ConvexFilter.\allowbreak exists\_maximal\_realizing}. Theorem \ref{thm:inseparable} is \texttt{ConvexFilter.\allowbreak Space.\allowbreak not\_separated\_Fline\_Ghyp} together with \texttt{ConvexFilter.\allowbreak Space.\allowbreak separated\_Ghyp\_Fminus}, and Proposition \ref{prop:compact} is \texttt{ConvexFilter.\allowbreak Space.\allowbreak isCompact\_univ} and \texttt{ConvexFilter.\allowbreak Space.\allowbreak t1Space}. Remark \ref{rem:polyhedral} is verified in both directions, and Remarks \ref{rem:independent}, \ref{rem:rates}, \ref{rem:subfilter}, \ref{rem:germs}, \ref{rem:recursion}, \ref{rem:nosupport} and \ref{rem:affine} are verified.
 
 Sections \ref{sec:prelim} and \ref{sec:orders}, and hence the invariants $\sigma_F$, $N_F$, $M_F$ and $Q_F$, are formalized over an arbitrary real normed space; finite dimensionality is a hypothesis only from the construction of the flat $A_F$ onward. This is the content of Remark \ref{rem:generality}, and it is certified by the absence of that hypothesis from the relevant files rather than by a theorem.
 
 Two results proved in the development are not in Mathlib at the pinned revision and may be of independent use: weak separation of two disjoint convex sets in finite dimensions with no topological hypothesis on either (\texttt{ConvexFilter.\allowbreak exists\_separating}), and its relative form controlling the separating functional on a prescribed affine subspace (\texttt{ConvexFilter.\allowbreak exists\_separating\_of\_subset\_affine}).
 
 \subsection*{What is not verified}
-The enumeration of strata in Corollary \ref{cor:strata} and the tables of Section \ref{sec:low} are not formalized. In Section \ref{sec:space}, Corollaries \ref{cor:nothausdorff} and \ref{cor:collapse} are formalized only in the first form: the non-transitivity of inseparability is \texttt{ConvexFilter.\allowbreak Space.\allowbreak separated\_not\_transitive}, while the passage to the maximal Hausdorff quotient, the conditional description of $h\mathcal{M}(\RR^2)$, and Question \ref{qn:dflat} are not. In Remark \ref{rem:generality} the positive claim is certified as described above, while the failure of Lemma \ref{lem:sep} in infinite dimensions is quoted from the literature and not proved here. Remark \ref{rem:extension} is not formalized: the saturation it uses is not available in Mathlib at the pinned revision.
+The enumeration of strata in Corollary \ref{cor:strata} and the tables of Section \ref{sec:low} are not formalized. Section \ref{sec:space} is formalized in full, including Corollary \ref{cor:collapse} both elementarily and in terms of Mathlib's \texttt{T2Quotient}, the first clause of Theorem \ref{thm:hM2} as an equivalence, the bijection of its second clause, and Proposition \ref{prop:notcylinder}. An earlier form of that second clause asserted a homeomorphism; the formalization refuted it, and the negation is proved in the development as \texttt{ConvexFilter.\allowbreak Space.\allowbreak not\_boundary\_homeomorph}. Question \ref{qn:fibre} is open. In Section \ref{sec:alg}, Propositions \ref{prop:algebra} and \ref{prop:members}, Theorem \ref{thm:charsep} and Lemma \ref{lem:ridge} are formalized; Corollary \ref{cor:strictly}, which combines Lemma \ref{lem:ridge} with the openness of the image of $\RR^n$ in the quotient, is not. In Remark \ref{rem:generality} the positive claim is certified as described above, while the failure of Lemma \ref{lem:sep} in infinite dimensions is quoted from the literature and not proved here. Remark \ref{rem:extension} is not formalized: the saturation it uses is not available in Mathlib at the pinned revision.
 
 \begin{thebibliography}{9}
+\bibitem{Frink}
+O.~Frink, \emph{Compactifications and semi-normal spaces}, Amer. J. Math. \textbf{86} (1964), 602--607.
+
+\bibitem{vanMill}
+J.~van Mill, \emph{Supercompactness and Wallman spaces}, Math. Centre Tracts \textbf{85}, Mathematisch Centrum, Amsterdam, 1977.
+
+\bibitem{vdV83}
+M.~van de Vel, \emph{Euclidean convexity cannot be compactified}, Math. Ann. \textbf{262} (1983), 563--572.
+
+\bibitem{vdV93}
+M.~van de Vel, \emph{Theory of Convex Structures}, North-Holland Mathematical Library \textbf{50}, North-Holland, Amsterdam, 1993.
+
+\bibitem{Wallman}
+H.~Wallman, \emph{Lattices and topological spaces}, Ann. of Math. (2) \textbf{39} (1938), 112--126.
+
 \bibitem{Repo}
 D.~V. Feldman, \emph{Maximal filters in the lattice of closed convex sets: Lean 4 formalization}, GitHub repository, \url{https://github.com/DavidVFeldman/maximal-convex-filters}, 2026.
 \end{thebibliography}
