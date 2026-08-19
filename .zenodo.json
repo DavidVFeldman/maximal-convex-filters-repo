@@ -1,6 +1,6 @@
 {
   "title": "Maximal filters in the lattice of closed convex sets: Lean 4 formalization",
-  "description": "<p>A Lean 4 formalization accompanying the paper <em>Maximal filters in the lattice of closed convex sets</em>. Maximal filters of the lattice of closed convex subsets of R^n are classified by an affine subspace A, a linear subspace W containing the direction space of A, and a vector space order on W in which that direction space is order-convex, subject to W = 0 when A is a point. The development comprises 28 files and 502 declarations; every declaration compiles and its axiom profile is {propext, Classical.choice, Quot.sound}.</p>",
+  "description": "<p>Paper and Lean 4 formalization. The closed convex subsets of R^n form a complete lattice under inclusion; its maximal filters are classified by an affine subspace A, a linear subspace W containing the direction space of A, and a vector space order on W in which that direction space is order-convex, subject to W = 0 when A is a point. Section 9 topologizes the set of maximal filters after Wallman and shows the resulting space is compact and T_1 but not Hausdorff; Section 10 shows that the algebra of functions converging along every maximal filter separates them. The development comprises 42 files and 842 declarations; every declaration compiles and its axiom profile is {propext, Classical.choice, Quot.sound}. The manuscript is under CC BY 4.0; the Lean sources are under Apache 2.0.</p>",
   "creators": [
     {
       "name": "Feldman, David Victor",
@@ -18,5 +18,12 @@
     "Lean 4",
     "formalized mathematics"
   ],
-  "version": "1.0"
+  "version": "1.1",
+  "related_identifiers": [
+    {
+      "identifier": "10.5281/zenodo.22007170",
+      "relation": "isVersionOf",
+      "scheme": "doi"
+    }
+  ]
 }

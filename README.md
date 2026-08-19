@@ -2,6 +2,8 @@
 
 **David Victor Feldman**, Department of Mathematics and Statistics, University of New Hampshire ([ORCID 0000-0001-6943-4833](https://orcid.org/0000-0001-6943-4833))
 
+[![DOI](https://zenodo.org/badge/1338876314.svg)](https://doi.org/10.5281/zenodo.22007170)
+
 A paper and its Lean 4 formalization.
 
 ## The result
@@ -70,4 +72,4 @@ The manuscript in `paper/` is under [CC BY 4.0](LICENSE). The Lean sources and b
 
 ## Citing
 
-See `CITATION.cff`.
+See `CITATION.cff`. The archived release carries the concept DOI [10.5281/zenodo.22007170](https://doi.org/10.5281/zenodo.22007170), which resolves to the latest version.

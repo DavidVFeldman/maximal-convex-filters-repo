@@ -14,11 +14,12 @@ authors:
     email: "dvfinnh@gmail.com"
     orcid: "https://orcid.org/0000-0001-6943-4833"
     affiliation: "University of New Hampshire"
-repository-code: "https://github.com/DavidVFeldman/maximal-convex-filters"
+repository-code: "https://github.com/DavidVFeldman/maximal-convex-filters-repo"
 license: Apache-2.0
 license-url: "https://www.apache.org/licenses/LICENSE-2.0"
-version: "1.0"
-date-released: "2026-08-18"
+doi: "10.5281/zenodo.22007170"
+version: "1.1"
+date-released: "2026-08-19"
 keywords:
   - convex geometry
   - lattice theory
